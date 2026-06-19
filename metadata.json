@@ -1,0 +1,6 @@
+{
+  "name": "O'quv Markazi SaaS",
+  "description": "O'quv markazlari uchun to'liq moslashtiriluvchi va mukammal Full-Stack veb-sayt hamda boshqaruv paneli (SaaS Demo)",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
