@@ -22,8 +22,9 @@ export function rateLimit(options: { windowMs: number; max: number; message?: st
       if (bucket.resetAt <= now) buckets.delete(key);
     }
   }, windowMs);
-  // Do not keep the process alive solely for the sweeper.
-  if (typeof sweeper.unref === "function") sweeper.unref();
+  // Do not keep the Node process alive solely for the sweeper. The cast keeps
+  // this safe whether the timer is typed as a browser number or NodeJS.Timeout.
+  (sweeper as unknown as { unref?: () => void }).unref?.();
 
   return (req: Request, res: Response, next: NextFunction): void => {
     const key = req.ip || req.socket.remoteAddress || "unknown";
