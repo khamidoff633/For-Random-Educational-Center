@@ -177,6 +177,10 @@ export class PostgresRepository implements Repository {
     courseId: r.course_id,
     status: r.status,
     notes: r.notes,
+    seen: r.seen,
+    verified: r.verified,
+    verifiedAt:
+      r.verified_at instanceof Date ? r.verified_at.toISOString() : r.verified_at ?? null,
     createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : r.created_at,
   });
 
@@ -187,9 +191,9 @@ export class PostgresRepository implements Repository {
 
   async createLead(l: Lead): Promise<Lead> {
     await this.pool.query(
-      `INSERT INTO leads (id, student_name, phone, course_id, status, notes, created_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-      [l.id, l.studentName, l.phone, l.courseId, l.status, l.notes, l.createdAt]
+      `INSERT INTO leads (id, student_name, phone, course_id, status, notes, seen, verified, verified_at, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+      [l.id, l.studentName, l.phone, l.courseId, l.status, l.notes, l.seen ?? false, l.verified ?? false, l.verifiedAt ?? null, l.createdAt]
     );
     return l;
   }
@@ -199,8 +203,8 @@ export class PostgresRepository implements Repository {
     if (!rows[0]) return null;
     const next = { ...this.mapLead(rows[0]), ...patch, id };
     await this.pool.query(
-      `UPDATE leads SET student_name=$2, phone=$3, course_id=$4, status=$5, notes=$6 WHERE id=$1`,
-      [id, next.studentName, next.phone, next.courseId, next.status, next.notes]
+      `UPDATE leads SET student_name=$2, phone=$3, course_id=$4, status=$5, notes=$6, seen=$7, verified=$8, verified_at=$9 WHERE id=$1`,
+      [id, next.studentName, next.phone, next.courseId, next.status, next.notes, next.seen ?? false, next.verified ?? false, next.verifiedAt ?? null]
     );
     return next;
   }

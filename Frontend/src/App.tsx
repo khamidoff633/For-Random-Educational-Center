@@ -54,8 +54,8 @@ export default function App() {
 
   if (loading || !settings) {
     return (
-      <div className="bg-aurora flex min-h-screen flex-col items-center justify-center gap-4 text-slate-400">
-        <Loader2 size={32} className="animate-spin text-neon-cyan" />
+      <div className="bg-warm flex min-h-screen flex-col items-center justify-center gap-4 text-charcoal-soft">
+        <Loader2 size={32} className="animate-spin text-caramel" />
         <span className="text-xs uppercase tracking-widest">Yuklanmoqda...</span>
       </div>
     );

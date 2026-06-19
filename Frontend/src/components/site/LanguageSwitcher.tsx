@@ -22,14 +22,14 @@ export default function LanguageSwitcher({
       <button
         onClick={() => setOpen((v) => !v)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        className="flex items-center gap-1.5 rounded-full glass px-3 py-2 text-xs font-bold uppercase text-slate-200 transition hover:text-neon-cyan"
+        className="flex items-center gap-1.5 rounded-full border border-black/10 bg-white/60 px-3 py-2 text-xs font-bold uppercase text-charcoal-soft transition hover:text-caramel-deep"
         aria-label="Tilni o'zgartirish"
       >
         <Languages size={15} />
         {lang}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-40 overflow-hidden rounded-xl glass-strong p-1 shadow-2xl">
+        <div className="absolute right-0 mt-2 w-40 overflow-hidden rounded-xl border border-black/10 bg-white p-1 shadow-soft">
           {LANGS.map((item) => (
             <button
               key={item.code}
@@ -37,10 +37,10 @@ export default function LanguageSwitcher({
                 onChange(item.code);
                 setOpen(false);
               }}
-              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-slate-200 transition hover:bg-white/10"
+              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-charcoal transition hover:bg-cream-soft"
             >
               {item.label}
-              {lang === item.code && <Check size={14} className="text-neon-cyan" />}
+              {lang === item.code && <Check size={14} className="text-caramel" />}
             </button>
           ))}
         </div>

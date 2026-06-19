@@ -58,7 +58,13 @@ export interface Course {
   capacity: number;
 }
 
-export type LeadStatus = "yangi" | "suhbatda" | "oqiyapti" | "rad-etildi";
+/**
+ * CRM pipeline statuses (simplified, real-world funnel):
+ *  - yangi         : new, not yet contacted
+ *  - boglanildi    : admin has contacted the prospect
+ *  - royxatga_otdi : converted — became a student
+ */
+export type LeadStatus = "yangi" | "boglanildi" | "royxatga_otdi";
 
 export interface Lead {
   id: string;
@@ -68,6 +74,12 @@ export interface Lead {
   status: LeadStatus;
   notes: string;
   createdAt: string;
+  /** False until the admin has opened the leads list (drives the "new" badge). */
+  seen?: boolean;
+  /** True once the admin marks the lead as handled ("Tekshirildi"). */
+  verified?: boolean;
+  /** ISO timestamp when verified; used for the 7-day auto-cleanup countdown. */
+  verifiedAt?: string | null;
 }
 
 export type ExamType = "IELTS" | "CEFR" | "SAT" | "Dasturlash";

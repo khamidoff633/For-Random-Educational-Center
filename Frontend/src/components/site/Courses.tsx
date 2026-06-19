@@ -44,8 +44,8 @@ export default function Courses({
             onClick={() => setActive(cat)}
             className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
               active === cat
-                ? "btn-neon"
-                : "glass text-slate-300 hover:text-neon-cyan"
+                ? "btn-primary"
+                : "border border-black/10 bg-white text-charcoal-soft hover:text-caramel-deep"
             }`}
           >
             {cat === "all" ? t("allCategories") : cat}

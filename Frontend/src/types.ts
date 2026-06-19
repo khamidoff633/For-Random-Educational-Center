@@ -73,7 +73,7 @@ export interface Teacher {
   gender?: "erkak" | "ayol";
 }
 
-export type LeadStatus = "yangi" | "suhbatda" | "oqiyapti" | "rad-etildi";
+export type LeadStatus = "yangi" | "boglanildi" | "royxatga_otdi";
 
 export interface Lead {
   id: string;
@@ -83,6 +83,9 @@ export interface Lead {
   status: LeadStatus;
   notes: string;
   createdAt: string;
+  seen?: boolean;
+  verified?: boolean;
+  verifiedAt?: string | null;
 }
 
 export interface DashboardStats {

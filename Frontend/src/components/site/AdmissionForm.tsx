@@ -6,6 +6,9 @@ import { api } from "../../api/client";
 import type { Course } from "../../types";
 import type { UIKey } from "../../i18n";
 
+const inputCls =
+  "w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm text-charcoal outline-none transition focus:border-caramel";
+
 export default function AdmissionForm({
   open,
   onClose,
@@ -60,56 +63,43 @@ export default function AdmissionForm({
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={onClose} tone="light">
       {success ? (
         <div className="flex flex-col items-center gap-4 py-8 text-center">
-          <CheckCircle2 size={56} className="text-emerald-400" />
-          <h3 className="text-xl font-bold text-white">{t("formSuccess")}</h3>
-          <button onClick={onClose} className="btn-ghost rounded-full px-6 py-2.5 text-sm">
+          <CheckCircle2 size={56} className="text-emerald-500" />
+          <h3 className="font-display text-xl font-bold text-charcoal">{t("formSuccess")}</h3>
+          <button onClick={onClose} className="btn-outline rounded-full px-6 py-2.5 text-sm">
             {t("close")}
           </button>
         </div>
       ) : (
         <form onSubmit={submit} className="flex flex-col gap-4">
           <div>
-            <h3 className="text-xl font-bold text-white">{t("admissionTitle")}</h3>
-            <p className="mt-1 text-sm text-slate-400">{t("admissionDesc")}</p>
+            <h3 className="font-display text-xl font-bold text-charcoal">{t("admissionTitle")}</h3>
+            <p className="mt-1 text-sm text-charcoal-soft">{t("admissionDesc")}</p>
           </div>
 
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={t("formName")}
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-neon-cyan"
-          />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("formName")} className={inputCls} />
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder={t("formPhone")}
             inputMode="tel"
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-neon-cyan"
+            className={inputCls}
           />
-          <select
-            value={courseId}
-            onChange={(e) => setCourseId(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-neon-cyan"
-          >
-            <option value="" className="bg-ink-800">
-              {t("formCourse")}
-            </option>
+          <select value={courseId} onChange={(e) => setCourseId(e.target.value)} className={inputCls}>
+            <option value="">{t("formCourse")}</option>
             {courses.map((c) => (
-              <option key={c.id} value={c.id} className="bg-ink-800">
-                {c.name}
-              </option>
+              <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
 
-          {error && <p className="text-sm text-rose-400">{error}</p>}
+          {error && <p className="text-sm text-rose-600">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="btn-neon inline-flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm disabled:opacity-60"
+            className="btn-primary inline-flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm disabled:opacity-60"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
             {loading ? t("formSending") : t("formSubmit")}

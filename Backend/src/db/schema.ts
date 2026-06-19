@@ -47,11 +47,15 @@ CREATE TABLE IF NOT EXISTS leads (
   course_id    TEXT NOT NULL DEFAULT '',
   status       TEXT NOT NULL DEFAULT 'yangi',
   notes        TEXT NOT NULL DEFAULT '',
+  seen         BOOLEAN NOT NULL DEFAULT false,
+  verified     BOOLEAN NOT NULL DEFAULT false,
+  verified_at  TIMESTAMPTZ,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS leads_status_idx ON leads (status);
 CREATE INDEX IF NOT EXISTS leads_created_idx ON leads (created_at DESC);
+CREATE INDEX IF NOT EXISTS leads_verified_idx ON leads (verified);
 
 CREATE TABLE IF NOT EXISTS student_results (
   id                TEXT PRIMARY KEY,

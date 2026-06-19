@@ -14,6 +14,7 @@ import {
   Loader2,
   Menu,
   X,
+  ArchiveRestore,
 } from "lucide-react";
 import { api, getToken, setToken } from "../api/client";
 import AdminLogin from "./AdminLogin";
@@ -22,6 +23,7 @@ import SettingsPanel from "./sections/SettingsPanel";
 import CoursesPanel from "./sections/CoursesPanel";
 import TeachersPanel from "./sections/TeachersPanel";
 import LeadsPanel from "./sections/LeadsPanel";
+import VerifiedLeadsPanel from "./sections/VerifiedLeadsPanel";
 import ResultsPanel from "./sections/ResultsPanel";
 import CopilotPanel from "./sections/CopilotPanel";
 import Modal from "../components/ui/Modal";
@@ -35,13 +37,14 @@ import type {
   Teacher,
 } from "../types";
 
-type SectionId = "dashboard" | "settings" | "courses" | "teachers" | "leads" | "results" | "copilot";
+type SectionId = "dashboard" | "settings" | "courses" | "teachers" | "leads" | "verified" | "results" | "copilot";
 
 const NAV: { id: SectionId; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard", label: "Boshqaruv paneli", icon: <LayoutDashboard size={18} /> },
   { id: "courses", label: "Kurslar", icon: <BookOpen size={18} /> },
   { id: "teachers", label: "O'qituvchilar", icon: <GraduationCap size={18} /> },
   { id: "leads", label: "Arizalar (CRM)", icon: <Users size={18} /> },
+  { id: "verified", label: "Tekshirilgan arizalar", icon: <ArchiveRestore size={18} /> },
   { id: "results", label: "O'quvchilar natijalari", icon: <Award size={18} /> },
   { id: "settings", label: "Sozlamalar", icon: <Settings size={18} /> },
   { id: "copilot", label: "AI Copilot", icon: <Sparkles size={18} /> },
@@ -119,6 +122,7 @@ export default function AdminApp({ onExit }: { onExit: () => void }) {
   if (!authed) return <AdminLogin onSuccess={onLoginSuccess} />;
 
   const activeLabel = NAV.find((n) => n.id === section)?.label ?? "";
+  const newLeadsCount = leads.filter((l) => !l.seen && !l.verified).length;
 
   return (
     <div className="bg-aurora min-h-screen lg:flex">
@@ -155,7 +159,12 @@ export default function AdminApp({ onExit }: { onExit: () => void }) {
               }`}
             >
               {item.icon}
-              {item.label}
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.id === "leads" && newLeadsCount > 0 && (
+                <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-neon-cyan px-1.5 text-[11px] font-bold text-[#050510]">
+                  {newLeadsCount}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -201,6 +210,9 @@ export default function AdminApp({ onExit }: { onExit: () => void }) {
           {section === "courses" && <CoursesPanel courses={courses} teachers={teachers} onChanged={loadAll} />}
           {section === "teachers" && <TeachersPanel teachers={teachers} onChanged={loadAll} />}
           {section === "leads" && <LeadsPanel leads={leads} courses={courses} onChanged={loadAll} />}
+          {section === "verified" && (
+            <VerifiedLeadsPanel leads={leads} courses={courses} onChanged={loadAll} />
+          )}
           {section === "results" && <ResultsPanel results={results} onChanged={loadAll} />}
           {section === "copilot" && <CopilotPanel onChanged={loadAll} />}
         </main>

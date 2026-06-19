@@ -1,6 +1,6 @@
 import type React from "react";
-import { useState } from "react";
-import { Loader2, Lock, Mail, ShieldCheck, ArrowLeft, KeyRound } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Loader2, Lock, Mail, ShieldCheck, ArrowLeft, KeyRound, RotateCw } from "lucide-react";
 import { api, setToken } from "../api/client";
 
 type Step = "credentials" | "otp";
@@ -13,6 +13,15 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
   const [maskedEmail, setMaskedEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+  const [resent, setResent] = useState(false);
+
+  // Countdown for the "resend code" button.
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
   const submitCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,10 +31,26 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
       const res = await api.post<{ maskedEmail: string }>("/auth/login", { email, password });
       setMaskedEmail(res.maskedEmail);
       setStep("otp");
+      setCooldown(45);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Kirishda xatolik");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Resend a fresh code (reuses the stored credentials).
+  const resend = async () => {
+    if (cooldown > 0 || loading) return;
+    setError("");
+    setResent(false);
+    try {
+      await api.post("/auth/login", { email, password });
+      setCooldown(45);
+      setResent(true);
+      setTimeout(() => setResent(false), 4000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Qayta yuborishda xatolik");
     }
   };
 
@@ -117,6 +142,22 @@ export default function AdminLogin({ onSuccess }: { onSuccess: () => void }) {
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
               Tasdiqlash va kirish
+            </button>
+            {resent && (
+              <p className="text-center text-xs text-emerald-400">Yangi kod yuborildi.</p>
+            )}
+            <button
+              type="button"
+              onClick={resend}
+              disabled={cooldown > 0}
+              className={`inline-flex items-center justify-center gap-1.5 text-xs transition ${
+                cooldown > 0
+                  ? "cursor-not-allowed text-slate-600"
+                  : "text-neon-cyan hover:text-white"
+              }`}
+            >
+              <RotateCw size={13} />
+              {cooldown > 0 ? `Qayta yuborish (${cooldown}s)` : "Kodni qayta yuborish"}
             </button>
             <button
               type="button"

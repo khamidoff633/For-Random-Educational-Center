@@ -6,6 +6,7 @@ import MediaUpload from "../ui/MediaUpload";
 import type { FeatureItem, SchoolSettings } from "../../types";
 
 const ICON_OPTIONS = ["GraduationCap", "Laptop", "Users", "TrendingUp", "BookOpen", "Award", "Globe", "Sparkles"];
+const MAX_FEATURES = 4;
 
 export default function SettingsPanel({
   settings,
@@ -15,6 +16,7 @@ export default function SettingsPanel({
   onSaved: () => void;
 }) {
   const [form, setForm] = useState<SchoolSettings>(settings);
+  const [baseline, setBaseline] = useState(() => JSON.stringify(settings));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -39,6 +41,7 @@ export default function SettingsPanel({
     setError("");
     try {
       await api.put("/settings", form, true);
+      setBaseline(JSON.stringify(form));
       setSaved(true);
       onSaved();
       setTimeout(() => setSaved(false), 2500);
@@ -49,10 +52,12 @@ export default function SettingsPanel({
     }
   };
 
+  const isDirty = JSON.stringify(form) !== baseline;
+  const featuresFull = form.features.length >= MAX_FEATURES;
+
   return (
     <div className="space-y-6">
-      {/* Brand */}
-      <section className="glass rounded-2xl p-6">
+      {/* Brand */}      <section className="glass rounded-2xl p-6">
         <h3 className="mb-4 font-bold text-white">Brend ma'lumotlari</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Markaz nomi">
@@ -116,8 +121,19 @@ export default function SettingsPanel({
       {/* Features */}
       <section className="glass rounded-2xl p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-bold text-white">Afzalliklar</h3>
-          <button onClick={addFeature} className="btn-ghost inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs">
+          <h3 className="font-bold text-white">
+            Afzalliklar <span className="text-xs font-normal text-slate-500">({form.features.length}/{MAX_FEATURES})</span>
+          </h3>
+          <button
+            onClick={addFeature}
+            disabled={featuresFull}
+            title={featuresFull ? `Maksimal ${MAX_FEATURES} ta afzallik` : "Afzallik qo'shish"}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition ${
+              featuresFull
+                ? "cursor-not-allowed border border-white/5 text-slate-600"
+                : "btn-ghost"
+            }`}
+          >
             <Plus size={14} /> Qo'shish
           </button>
         </div>
@@ -157,11 +173,18 @@ export default function SettingsPanel({
 
       {error && <p className="text-sm text-rose-400">{error}</p>}
 
-      <div className="sticky bottom-4 flex justify-end">
+      <div className="sticky bottom-4 flex items-center justify-end gap-3">
+        {!isDirty && !saved && (
+          <span className="text-xs text-slate-500">O'zgarish kiritilmagan</span>
+        )}
         <button
           onClick={save}
-          disabled={saving}
-          className="btn-neon inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm shadow-2xl disabled:opacity-60"
+          disabled={saving || !isDirty}
+          className={`inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition ${
+            isDirty
+              ? "btn-neon shadow-2xl"
+              : "cursor-not-allowed bg-white/5 text-slate-600"
+          }`}
         >
           {saving ? <Loader2 size={16} className="animate-spin" /> : saved ? <CheckCircle2 size={16} /> : <Save size={16} />}
           {saved ? "Saqlandi" : "O'zgarishlarni saqlash"}

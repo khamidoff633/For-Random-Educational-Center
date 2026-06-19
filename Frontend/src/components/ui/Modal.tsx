@@ -8,10 +8,12 @@ interface ModalProps {
   children: ReactNode;
   /** Max-width utility class, e.g. "max-w-lg". */
   maxWidth?: string;
+  /** "dark" for the admin glass theme, "light" for the public premium theme. */
+  tone?: "dark" | "light";
 }
 
-/** Accessible, animated modal dialog with a glass surface. */
-export default function Modal({ open, onClose, children, maxWidth = "max-w-lg" }: ModalProps) {
+/** Accessible, animated modal dialog. */
+export default function Modal({ open, onClose, children, maxWidth = "max-w-lg", tone = "dark" }: ModalProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -23,6 +25,15 @@ export default function Modal({ open, onClose, children, maxWidth = "max-w-lg" }
     };
   }, [open, onClose]);
 
+  const surface =
+    tone === "light"
+      ? "bg-white text-charcoal border border-black/5"
+      : "glass-strong text-slate-100";
+  const closeBtn =
+    tone === "light"
+      ? "text-charcoal-soft hover:bg-black/5 hover:text-charcoal"
+      : "text-slate-400 hover:bg-white/10 hover:text-white";
+
   return (
     <AnimatePresence>
       {open && (
@@ -33,12 +44,12 @@ export default function Modal({ open, onClose, children, maxWidth = "max-w-lg" }
           exit={{ opacity: 0 }}
         >
           <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
             aria-hidden
           />
           <motion.div
-            className={`glass-strong relative w-full ${maxWidth} max-h-[90vh] overflow-y-auto rounded-2xl p-6 shadow-2xl`}
+            className={`relative w-full ${maxWidth} max-h-[90vh] overflow-y-auto rounded-3xl p-6 shadow-2xl ${surface}`}
             initial={{ scale: 0.92, y: 20, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.92, y: 20, opacity: 0 }}
@@ -48,7 +59,7 @@ export default function Modal({ open, onClose, children, maxWidth = "max-w-lg" }
           >
             <button
               onClick={onClose}
-              className="absolute right-4 top-4 rounded-full p-2 text-slate-400 transition hover:bg-white/10 hover:text-white"
+              className={`absolute right-4 top-4 rounded-full p-2 transition ${closeBtn}`}
               aria-label="Yopish"
             >
               <X size={18} />

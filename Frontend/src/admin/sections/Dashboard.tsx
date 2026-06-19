@@ -4,16 +4,14 @@ import type { DashboardStats, LeadStatus } from "../../types";
 
 const STATUS_LABELS: Record<LeadStatus, string> = {
   yangi: "Yangi",
-  suhbatda: "Suhbatda",
-  oqiyapti: "O'qiyapti",
-  "rad-etildi": "Rad etildi",
+  boglanildi: "Bog'lanildi",
+  royxatga_otdi: "Ro'yxatdan o'tdi",
 };
 
 const STATUS_COLORS: Record<LeadStatus, string> = {
   yangi: "bg-sky-500",
-  suhbatda: "bg-amber-500",
-  oqiyapti: "bg-emerald-500",
-  "rad-etildi": "bg-rose-500",
+  boglanildi: "bg-amber-500",
+  royxatga_otdi: "bg-emerald-500",
 };
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {

@@ -35,60 +35,62 @@ export default function Reviews({ t }: { t: (key: UIKey) => string }) {
   const review = REVIEWS[index];
 
   return (
-    <section className="mx-auto w-[92%] max-w-4xl py-24">
-      <SectionHeading eyebrow={t("reviewsSubtitle")} title={t("reviewsTitle")} />
+    <section className="bg-cream-soft py-24">
+      <div className="mx-auto w-[92%] max-w-4xl">
+        <SectionHeading eyebrow={t("reviewsSubtitle")} title={t("reviewsTitle")} />
 
-      <div className="relative mt-12">
-        <div className="glass-strong rounded-3xl p-8 text-center sm:p-12">
-          <Quote size={40} className="mx-auto text-neon-violet/60" />
-          <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-200">
-            "{review.text}"
-          </p>
-          <div className="mt-6 flex items-center justify-center gap-1 text-neon-cyan">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} size={16} fill="currentColor" />
-            ))}
-          </div>
-          <div className="mt-5 flex items-center justify-center gap-3">
-            <img
-              src={review.avatar}
-              alt={review.name}
-              className="h-12 w-12 rounded-full border-2 border-neon-cyan/40 object-cover"
-            />
-            <div className="text-left">
-              <p className="font-bold text-white">{review.name}</p>
-              <p className="text-xs text-neon-cyan">{review.role}</p>
+        <div className="relative mt-12">
+          <div className="card-soft rounded-3xl p-8 text-center sm:p-12">
+            <Quote size={40} className="mx-auto text-caramel/40" />
+            <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-charcoal">
+              "{review.text}"
+            </p>
+            <div className="mt-6 flex items-center justify-center gap-1 text-caramel">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} size={16} fill="currentColor" />
+              ))}
+            </div>
+            <div className="mt-5 flex items-center justify-center gap-3">
+              <img
+                src={review.avatar}
+                alt={review.name}
+                className="h-12 w-12 rounded-full border-2 border-caramel/30 object-cover"
+              />
+              <div className="text-left">
+                <p className="font-display font-bold text-charcoal">{review.name}</p>
+                <p className="text-xs font-semibold text-caramel-deep">{review.role}</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="mt-6 flex items-center justify-center gap-4">
-          <button
-            onClick={() => setIndex((i) => (i - 1 + REVIEWS.length) % REVIEWS.length)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full glass text-slate-300 transition hover:text-neon-cyan"
-            aria-label="Oldingi"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <div className="flex gap-2">
-            {REVIEWS.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setIndex(i)}
-                className={`h-2 rounded-full transition-all ${
-                  i === index ? "w-6 bg-neon-cyan" : "w-2 bg-white/30"
-                }`}
-                aria-label={`${i + 1}`}
-              />
-            ))}
+          <div className="mt-6 flex items-center justify-center gap-4">
+            <button
+              onClick={() => setIndex((i) => (i - 1 + REVIEWS.length) % REVIEWS.length)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white text-charcoal-soft transition hover:text-caramel-deep"
+              aria-label="Oldingi"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <div className="flex gap-2">
+              {REVIEWS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setIndex(i)}
+                  className={`h-2 rounded-full transition-all ${
+                    i === index ? "w-6 bg-caramel" : "w-2 bg-black/15"
+                  }`}
+                  aria-label={`${i + 1}`}
+                />
+              ))}
+            </div>
+            <button
+              onClick={() => setIndex((i) => (i + 1) % REVIEWS.length)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-white text-charcoal-soft transition hover:text-caramel-deep"
+              aria-label="Keyingi"
+            >
+              <ChevronRight size={16} />
+            </button>
           </div>
-          <button
-            onClick={() => setIndex((i) => (i + 1) % REVIEWS.length)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full glass text-slate-300 transition hover:text-neon-cyan"
-            aria-label="Keyingi"
-          >
-            <ChevronRight size={16} />
-          </button>
         </div>
       </div>
     </section>
