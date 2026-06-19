@@ -78,4 +78,21 @@ CREATE TABLE IF NOT EXISTS admin_users (
   otp_expires_at BIGINT,
   otp_attempts   INTEGER NOT NULL DEFAULT 0
 );
+
+-- ---------------------------------------------------------------------
+-- Migrations (idempotent) — upgrade databases created by older versions.
+-- ---------------------------------------------------------------------
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS seen BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified_at TIMESTAMPTZ;
+
+-- Map legacy CRM statuses to the new simplified pipeline.
+UPDATE leads SET status = 'boglanildi' WHERE status = 'suhbatda';
+UPDATE leads SET status = 'royxatga_otdi' WHERE status = 'oqiyapti';
+UPDATE leads SET status = 'yangi'
+  WHERE status NOT IN ('yangi', 'boglanildi', 'royxatga_otdi');
+
+-- Ensure student_results has the certificate/description columns.
+ALTER TABLE student_results ADD COLUMN IF NOT EXISTS certificate_image TEXT NOT NULL DEFAULT '';
+ALTER TABLE student_results ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
 `;
