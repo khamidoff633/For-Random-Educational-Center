@@ -4,5 +4,11 @@ dist/
 coverage/
 .DS_Store
 *.log
+
+# Secrets
 .env*
 !.env.example
+
+# Runtime data & uploaded media (not source-controlled)
+data/db.json
+uploads/
