@@ -1,3 +1,16 @@
+/**
+ * Shared frontend DTO types. These mirror the JSON returned by the backend
+ * API (see Backend/src/models/types.ts).
+ */
+export type Language = "uz" | "ru" | "en";
+
+export interface FeatureItem {
+  id: string;
+  title: string;
+  desc: string;
+  icon: string;
+}
+
 export interface SchoolSettings {
   name: string;
   logoText: string;
@@ -5,7 +18,7 @@ export interface SchoolSettings {
   heroSubtitle: string;
   heroBgImage: string;
   heroVideoUrl?: string;
-  heroMediaType?: 'image' | 'video';
+  heroMediaType?: "image" | "video";
   phone: string;
   email: string;
   address: string;
@@ -18,23 +31,20 @@ export interface SchoolSettings {
   features: FeatureItem[];
 }
 
+export type ExamType = "IELTS" | "CEFR" | "SAT" | "Dasturlash";
+
 export interface StudentResultItem {
   id: string;
   studentName: string;
   score: string;
-  examType: 'IELTS' | 'CEFR' | 'SAT' | 'Dasturlash';
+  examType: ExamType;
   image: string;
+  /** Uploaded certificate image. */
+  certificateImage?: string;
+  /** Optional caption (max 150 chars). */
+  description?: string;
   courseName?: string;
   achievementDate?: string;
-  studentPhoto?: string;
-  studentBio?: string;
-}
-
-export interface FeatureItem {
-  id: string;
-  title: string;
-  desc: string;
-  icon: string;
 }
 
 export interface Course {
@@ -60,15 +70,17 @@ export interface Teacher {
   image: string;
   experience: string;
   phone: string;
-  gender?: 'erkak' | 'ayol';
+  gender?: "erkak" | "ayol";
 }
+
+export type LeadStatus = "yangi" | "suhbatda" | "oqiyapti" | "rad-etildi";
 
 export interface Lead {
   id: string;
   studentName: string;
   phone: string;
   courseId: string;
-  status: 'yangi' | 'suhbatda' | 'oqiyapti' | 'rad-etildi';
+  status: LeadStatus;
   notes: string;
   createdAt: string;
 }
@@ -79,10 +91,6 @@ export interface DashboardStats {
   totalCourses: number;
   totalTeachers: number;
   recentLeads: Lead[];
-  leadsByStatus: {
-    yangi: number;
-    suhbatda: number;
-    oqiyapti: number;
-    'rad-etildi': number;
-  };
+  leadsByStatus: Record<LeadStatus, number>;
+  leadsTrend: { date: string; count: number }[];
 }
