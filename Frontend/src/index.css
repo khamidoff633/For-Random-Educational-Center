@@ -14,15 +14,11 @@
   --color-charcoal-soft: #4a4742;
   --color-caramel: #c8761a;
   --color-caramel-deep: #a85d12;
-  --color-espresso: #1c1a17;
+  --color-espresso: #241c16;
 
   /* Secondary accent — deep emerald/jade (used sparingly) */
   --color-jade: #0f6e5c;
   --color-jade-deep: #0a5546;
-
-  /* Depth/anchor accent — warm burgundy/wine (footer, contact, select details) */
-  --color-wine: #6e2233;
-  --color-wine-deep: #571825;
 
   /* Dark palette (admin panel) */
   --color-ink-950: #060611;
