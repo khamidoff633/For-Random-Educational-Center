@@ -15,6 +15,7 @@ import Contact from "./Contact";
 import AdmissionForm from "./AdmissionForm";
 import Footer from "./Footer";
 import Marquee from "../effects/Marquee";
+import { useSmoothScroll } from "../../hooks/useSmoothScroll";
 import { createTranslator } from "../../i18n";
 import type { Course, Language, SchoolSettings, StudentResultItem, Teacher } from "../../types";
 
@@ -38,6 +39,7 @@ export default function PublicSite({
   onAdminClick,
 }: PublicSiteProps) {
   const t = createTranslator(lang);
+  useSmoothScroll();
   const [enrollOpen, setEnrollOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<string>("");
 

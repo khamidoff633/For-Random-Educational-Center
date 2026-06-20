@@ -306,6 +306,14 @@ body {
 }
 html { scroll-behavior: smooth; }
 
+/* Lenis smooth-scroll support */
+html.lenis,
+html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-smooth iframe { pointer-events: none; }
+
 /* ===================== Markdown (AI plan, on light card) ===================== */
 .markdown h2 { font-size: 1.05rem; font-weight: 800; color: #1a1a1a; margin: 1.1rem 0 .5rem; }
 .markdown h3 { font-size: .95rem; font-weight: 700; color: #4a4742; margin: .9rem 0 .4rem; }
