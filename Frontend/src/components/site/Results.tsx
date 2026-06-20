@@ -42,7 +42,7 @@ export default function Results({
                   <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold text-caramel-deep shadow-soft">
                     <Star size={11} /> {result.examType}
                   </span>
-                  <span className="absolute bottom-3 right-3 rounded-lg bg-navy/90 px-3 py-1 font-display text-lg font-extrabold text-white">
+                  <span className="absolute bottom-3 right-3 rounded-lg bg-wine/90 px-3 py-1 font-display text-lg font-extrabold text-white">
                     {result.score}
                   </span>
                 </div>
