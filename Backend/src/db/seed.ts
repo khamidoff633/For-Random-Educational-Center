@@ -218,9 +218,8 @@ export function buildSeedDatabase(): DatabaseShape {
       id: "admin",
       email: env.auth.adminEmail,
       passwordHash: hashPassword(env.auth.adminPassword),
-      otpHash: null,
-      otpExpiresAt: null,
-      otpAttempts: 0,
+      totpSecret: null,
+      totpEnabled: false,
     },
   };
 }

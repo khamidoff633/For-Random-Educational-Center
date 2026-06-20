@@ -21,12 +21,6 @@ function readNumber(key: string, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function readBool(key: string, fallback: boolean): boolean {
-  const raw = process.env[key];
-  if (raw === undefined) return fallback;
-  return ["1", "true", "yes", "on"].includes(raw.toLowerCase());
-}
-
 const isProduction = readString("NODE_ENV") === "production";
 
 /**
@@ -68,8 +62,6 @@ export const env = {
   auth: {
     jwtSecret: resolveJwtSecret(),
     jwtTtlSeconds: readNumber("JWT_TTL_SECONDS", 60 * 60 * 8), // 8 hours
-    otpTtlSeconds: readNumber("OTP_TTL_SECONDS", 5 * 60), // 5 minutes
-    otpMaxAttempts: readNumber("OTP_MAX_ATTEMPTS", 5),
     /**
      * Bootstrap admin credentials. On first boot, if no admin exists, an admin
      * account is created from these values. The default password should be
@@ -77,19 +69,6 @@ export const env = {
      */
     adminEmail: readString("ADMIN_EMAIL", "bahriddinhamidov057@gmail.com"),
     adminPassword: readString("ADMIN_PASSWORD", "Apex@2026"),
-  },
-
-  mail: {
-    /** "smtp" sends real email; "console" logs the code to the server log. */
-    transport: readString("MAIL_TRANSPORT", isProduction ? "smtp" : "console"),
-    host: readString("SMTP_HOST"),
-    port: readNumber("SMTP_PORT", 587),
-    secure: readBool("SMTP_SECURE", false),
-    user: readString("SMTP_USER"),
-    // Gmail shows app passwords with spaces (e.g. "abcd efgh ijkl mnop");
-    // strip them so a pasted-with-spaces value still authenticates.
-    pass: readString("SMTP_PASS").replace(/\s+/g, ""),
-    from: readString("MAIL_FROM", "Apex Academy <no-reply@apexacademy.uz>"),
   },
 
   upload: {

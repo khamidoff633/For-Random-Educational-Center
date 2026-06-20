@@ -2,15 +2,19 @@ import { Router, type Response } from "express";
 import { requireAuth, type AuthedRequest } from "../middleware/auth";
 import { asyncHandler, HttpError } from "../middleware/errorHandler";
 import { rateLimit } from "../middleware/rateLimit";
-import { changePassword, login, verifyOtp } from "../services/authService";
+import { changePassword, login, verifyTotpLogin } from "../services/authService";
 import { str } from "../utils/validation";
 
 const router = Router();
 
 // Throttle auth attempts to slow brute-force/credential-stuffing.
-const authLimiter = rateLimit({ windowMs: 60_000, max: 8, message: "Juda ko'p urinish. Birozdan so'ng qayta urinib ko'ring." });
+const authLimiter = rateLimit({
+  windowMs: 60_000,
+  max: 12,
+  message: "Juda ko'p urinish. Birozdan so'ng qayta urinib ko'ring.",
+});
 
-// Step 1: email + password -> emails a 2FA code.
+// Step 1: email + password -> 2FA ticket (+ setup data on first login).
 router.post(
   "/login",
   authLimiter,
@@ -21,33 +25,36 @@ router.post(
 
     const result = await login(email, password);
     if (!result.ok) throw new HttpError(401, result.error ?? "Kirish rad etildi.");
-    res.json({ ok: true, maskedEmail: result.maskedEmail });
+
+    res.json({
+      ok: true,
+      ticket: result.ticket,
+      needsSetup: result.needsSetup,
+      otpauthUri: result.otpauthUri,
+      secret: result.secret,
+    });
   })
 );
 
-// Step 2: email + code -> session token.
+// Step 2: ticket + authenticator code -> session token.
 router.post(
   "/verify",
   authLimiter,
   asyncHandler(async (req, res) => {
-    const email = str(req.body?.email);
+    const ticket = str(req.body?.ticket);
     const code = str(req.body?.code);
-    if (!email || !code) throw new HttpError(400, "Email va kodni kiriting.");
+    if (!ticket || !code) throw new HttpError(400, "Kodni kiriting.");
 
-    const result = await verifyOtp(email, code);
+    const result = await verifyTotpLogin(ticket, code);
     if (!result.ok) throw new HttpError(401, result.error ?? "Tasdiqlash rad etildi.");
     res.json({ ok: true, token: result.token });
   })
 );
 
 // Returns the authenticated admin (used to restore a session on reload).
-router.get(
-  "/me",
-  requireAuth,
-  (req: AuthedRequest, res: Response) => {
-    res.json({ admin: req.admin });
-  }
-);
+router.get("/me", requireAuth, (req: AuthedRequest, res: Response) => {
+  res.json({ admin: req.admin });
+});
 
 // Change the admin password (requires a valid session + current password).
 router.post(

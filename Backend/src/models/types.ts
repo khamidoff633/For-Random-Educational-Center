@@ -102,20 +102,18 @@ export interface StudentResultItem {
 }
 
 /**
- * Server-only entity. The password is stored only as a salted hash and the
- * 2FA one-time code is stored hashed with an expiry. Neither is ever returned
- * to the client.
+ * Server-only entity. The password is stored only as a salted hash, and the
+ * TOTP secret powers authenticator-app 2FA. Neither is ever returned to the
+ * client (the secret is only exposed once, during first-time setup).
  */
 export interface AdminUser {
   id: string;
   email: string;
   passwordHash: string;
-  /** Hash of the active 2FA one-time code, or null when none is pending. */
-  otpHash: string | null;
-  /** Expiry timestamp (ms since epoch) for the active 2FA code. */
-  otpExpiresAt: number | null;
-  /** Number of consecutive failed 2FA attempts for the active code. */
-  otpAttempts: number;
+  /** Base32 TOTP secret (generated on first login), or null before setup. */
+  totpSecret: string | null;
+  /** True once the admin has confirmed their authenticator app. */
+  totpEnabled: boolean;
 }
 
 /** Full database shape used by the file store and seeded into PostgreSQL. */

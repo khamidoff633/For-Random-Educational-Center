@@ -1,33 +1,34 @@
 /**
- * Admin authentication with email-based two-factor (2FA).
+ * Admin authentication with authenticator-app two-factor (TOTP).
  *
  * Flow:
- *   1. login(email, password)  -> verifies credentials, emails a 6-digit code.
- *   2. verifyOtp(email, code)  -> validates the code, returns a session JWT.
+ *   1. login(email, password)
+ *        -> verifies credentials, returns a short-lived 2FA "ticket".
+ *        -> on first ever login, also returns the otpauth URI + secret so the
+ *           admin can add the account to Google Authenticator (QR / manual key).
+ *   2. verifyTotpLogin(ticket, code)
+ *        -> validates the ticket + the 6-digit code from the app,
+ *           returns a session JWT.
  *
- * Codes are stored only as SHA-256 hashes with an expiry and attempt counter,
- * and verified in constant time. Generic error messages avoid leaking whether
- * an email exists.
+ * No email or SMTP is involved — codes are generated on the admin's device.
  */
 import { env } from "../config/env";
 import { getRepository } from "../db";
-import {
-  generateOtp,
-  hashPassword,
-  safeEqual,
-  sha256,
-  signJwt,
-  verifyJwt,
-  verifyPassword,
-} from "../utils/crypto";
-import { buildOtpEmail, sendMail } from "./mailer";
+import { hashPassword, safeEqual, signJwt, verifyJwt, verifyPassword } from "../utils/crypto";
+import { buildOtpAuthUri, generateTotpSecret, verifyTotp } from "../utils/totp";
 
 const GENERIC_INVALID = "Email yoki parol noto'g'ri.";
+const TICKET_TTL_SECONDS = 300; // 5 minutes to complete the 2FA step
 
 export interface LoginResult {
   ok: boolean;
-  /** Masked destination shown to the user, e.g. "bah***@gmail.com". */
-  maskedEmail?: string;
+  /** Short-lived token proving the password step passed. */
+  ticket?: string;
+  /** True when the authenticator app is not yet configured. */
+  needsSetup?: boolean;
+  /** Setup data (only present when needsSetup is true). */
+  otpauthUri?: string;
+  secret?: string;
   error?: string;
 }
 
@@ -37,14 +38,7 @@ export interface VerifyResult {
   error?: string;
 }
 
-function maskEmail(email: string): string {
-  const [name, domain] = email.split("@");
-  if (!domain) return email;
-  const visible = name.slice(0, Math.min(3, name.length));
-  return `${visible}${"*".repeat(Math.max(1, name.length - visible.length))}@${domain}`;
-}
-
-/** Step 1 — verify credentials and dispatch a one-time code by email. */
+/** Step 1 — verify credentials and start the 2FA step. */
 export async function login(email: string, password: string): Promise<LoginResult> {
   const repo = getRepository();
   const admin = await repo.getAdmin();
@@ -55,67 +49,52 @@ export async function login(email: string, password: string): Promise<LoginResul
     return { ok: false, error: GENERIC_INVALID };
   }
 
-  const code = generateOtp(6);
-  await repo.updateAdmin({
-    otpHash: sha256(code),
-    otpExpiresAt: Date.now() + env.auth.otpTtlSeconds * 1000,
-    otpAttempts: 0,
-  });
-
-  const settings = await repo.getSettings();
-  // Try to deliver by the configured transport. If delivery fails (e.g. wrong
-  // SMTP credentials), don't lock the admin out — log the code to the server
-  // console as a fallback so login can still proceed.
-  try {
-    await sendMail(buildOtpEmail(admin.email, code, settings.name || "Apex Academy"));
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error(
-      "[auth] Email delivery failed; falling back to console.",
-      error instanceof Error ? error.message : error
-    );
-    // eslint-disable-next-line no-console
-    console.log(
-      [
-        "",
-        "──────────── 2FA KOD (email yuborilmadi — zaxira) ────────────",
-        `Admin: ${admin.email}`,
-        `Kirish kodi: ${code}`,
-        "──────────────────────────────────────────────────────────────",
-        "",
-      ].join("\n")
-    );
+  // Ensure a TOTP secret exists (created on first login, before confirmation).
+  let secret = admin.totpSecret;
+  if (!secret) {
+    secret = generateTotpSecret();
+    await repo.updateAdmin({ totpSecret: secret });
   }
 
-  return { ok: true, maskedEmail: maskEmail(admin.email) };
+  const ticket = signJwt({ sub: admin.id, email: admin.email, purpose: "2fa" }, env.auth.jwtSecret, TICKET_TTL_SECONDS);
+
+  if (!admin.totpEnabled) {
+    const settings = await repo.getSettings();
+    const issuer = settings.name || "Apex Academy";
+    return {
+      ok: true,
+      ticket,
+      needsSetup: true,
+      secret,
+      otpauthUri: buildOtpAuthUri(secret, admin.email, issuer),
+    };
+  }
+
+  return { ok: true, ticket, needsSetup: false };
 }
 
-/** Step 2 — validate the one-time code and issue a session token. */
-export async function verifyOtp(email: string, code: string): Promise<VerifyResult> {
+/** Step 2 — validate the ticket + authenticator code, issue a session token. */
+export async function verifyTotpLogin(ticket: string, code: string): Promise<VerifyResult> {
+  const payload = verifyJwt(ticket, env.auth.jwtSecret);
+  if (!payload || payload.purpose !== "2fa") {
+    return { ok: false, error: "Sessiya muddati tugadi. Qaytadan kiring." };
+  }
+
   const repo = getRepository();
   const admin = await repo.getAdmin();
-
-  if (!admin.otpHash || !admin.otpExpiresAt) {
+  if (!admin.totpSecret) {
     return { ok: false, error: "Avval email va parolingizni kiriting." };
   }
-  if (Date.now() > admin.otpExpiresAt) {
-    await repo.updateAdmin({ otpHash: null, otpExpiresAt: null, otpAttempts: 0 });
-    return { ok: false, error: "Kod muddati tugadi. Iltimos, qaytadan kiring." };
-  }
-  if (admin.otpAttempts >= env.auth.otpMaxAttempts) {
-    await repo.updateAdmin({ otpHash: null, otpExpiresAt: null, otpAttempts: 0 });
-    return { ok: false, error: "Juda ko'p urinish. Iltimos, qaytadan kiring." };
+
+  if (!verifyTotp(admin.totpSecret, code)) {
+    return { ok: false, error: "Kod noto'g'ri. Ilovadagi joriy kodni kiriting." };
   }
 
-  const emailMatches = safeEqual(email.trim().toLowerCase(), admin.email.trim().toLowerCase());
-  const codeMatches = safeEqual(sha256(code.trim()), admin.otpHash);
-  if (!emailMatches || !codeMatches) {
-    await repo.updateAdmin({ otpAttempts: admin.otpAttempts + 1 });
-    return { ok: false, error: "Kod noto'g'ri." };
+  // First successful verification confirms the authenticator setup.
+  if (!admin.totpEnabled) {
+    await repo.updateAdmin({ totpEnabled: true });
   }
 
-  // Success — clear the code and issue a JWT.
-  await repo.updateAdmin({ otpHash: null, otpExpiresAt: null, otpAttempts: 0 });
   const token = signJwt({ sub: admin.id, email: admin.email }, env.auth.jwtSecret, env.auth.jwtTtlSeconds);
   return { ok: true, token };
 }

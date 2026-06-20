@@ -54,8 +54,8 @@ export class PostgresRepository implements Repository {
       [JSON.stringify(seed.settings)]
     );
     await this.pool.query(
-      `INSERT INTO admin_users (id, email, password_hash, otp_hash, otp_expires_at, otp_attempts)
-       VALUES ('admin', $1, $2, NULL, NULL, 0) ON CONFLICT (id) DO NOTHING`,
+      `INSERT INTO admin_users (id, email, password_hash, totp_secret, totp_enabled)
+       VALUES ('admin', $1, $2, NULL, false) ON CONFLICT (id) DO NOTHING`,
       [seed.admin.email, seed.admin.passwordHash]
     );
     for (const t of seed.teachers) await this.createTeacher(t);
@@ -262,9 +262,8 @@ export class PostgresRepository implements Repository {
     id: r.id,
     email: r.email,
     passwordHash: r.password_hash,
-    otpHash: r.otp_hash,
-    otpExpiresAt: r.otp_expires_at === null ? null : Number(r.otp_expires_at),
-    otpAttempts: r.otp_attempts,
+    totpSecret: r.totp_secret ?? null,
+    totpEnabled: r.totp_enabled ?? false,
   });
 
   async getAdmin(): Promise<AdminUser> {
@@ -276,8 +275,8 @@ export class PostgresRepository implements Repository {
     const current = await this.getAdmin();
     const next = { ...current, ...patch };
     await this.pool.query(
-      `UPDATE admin_users SET email=$2, password_hash=$3, otp_hash=$4, otp_expires_at=$5, otp_attempts=$6 WHERE id=$1`,
-      [next.id, next.email, next.passwordHash, next.otpHash, next.otpExpiresAt, next.otpAttempts]
+      `UPDATE admin_users SET email=$2, password_hash=$3, totp_secret=$4, totp_enabled=$5 WHERE id=$1`,
+      [next.id, next.email, next.passwordHash, next.totpSecret, next.totpEnabled]
     );
     return next;
   }

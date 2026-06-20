@@ -74,9 +74,8 @@ CREATE TABLE IF NOT EXISTS admin_users (
   id             TEXT PRIMARY KEY DEFAULT 'admin',
   email          TEXT NOT NULL,
   password_hash  TEXT NOT NULL,
-  otp_hash       TEXT,
-  otp_expires_at BIGINT,
-  otp_attempts   INTEGER NOT NULL DEFAULT 0
+  totp_secret    TEXT,
+  totp_enabled   BOOLEAN NOT NULL DEFAULT false
 );
 
 -- ---------------------------------------------------------------------
@@ -88,6 +87,10 @@ ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified BOOLEAN NOT NULL DEFAULT fal
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified_at TIMESTAMPTZ;
 ALTER TABLE student_results ADD COLUMN IF NOT EXISTS certificate_image TEXT NOT NULL DEFAULT '';
 ALTER TABLE student_results ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
+
+-- Authenticator (TOTP) 2FA columns for databases created before TOTP.
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS totp_secret TEXT;
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN NOT NULL DEFAULT false;
 
 -- Map legacy CRM statuses to the new simplified pipeline.
 UPDATE leads SET status = 'boglanildi' WHERE status = 'suhbatda';
