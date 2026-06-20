@@ -4,6 +4,9 @@ import Reveal from "../ui/Reveal";
 import type { SchoolSettings } from "../../types";
 import type { UIKey } from "../../i18n";
 
+const ABOUT_FALLBACK =
+  "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop";
+
 const HIGHLIGHTS_BY_LANG: Record<string, string[]> = {
   uz: ["Xalqaro sertifikatli ustozlar", "Kichik va samarali guruhlar", "Natijaga kafolatli yondashuv"],
   ru: ["Преподаватели с межд. сертификатами", "Малые эффективные группы", "Подход с гарантией результата"],
@@ -28,12 +31,13 @@ export default function About({
         <Reveal>
           <div className="relative">
             <img
-              src={settings.heroBgImage}
+              src={settings.heroBgImage || ABOUT_FALLBACK}
               alt={settings.name}
               loading="lazy"
+              onError={(e) => ((e.target as HTMLImageElement).src = ABOUT_FALLBACK)}
               className="h-[26rem] w-full rounded-[2rem] object-cover shadow-soft-lg"
             />
-            <div className="card-soft absolute -right-3 -top-5 rounded-2xl px-5 py-3 sm:-right-6">
+            <div className="card-soft animate-breathe absolute -right-3 -top-5 rounded-2xl px-5 py-3 sm:-right-6">
               <p className="font-display text-2xl font-extrabold text-caramel-deep">15+</p>
               <p className="text-xs text-charcoal-soft">{t("statYears")}</p>
             </div>

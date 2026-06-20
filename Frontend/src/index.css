@@ -238,6 +238,13 @@ body {
 }
 .animate-float { animation: float 6s ease-in-out infinite; }
 
+/* Gentle "breathing" scale, like calm lungs expanding/contracting. */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+.animate-breathe { animation: breathe 4.5s ease-in-out infinite; }
+
 @keyframes spin-slow { to { transform: rotate(360deg); } }
 .animate-spin-slow { animation: spin-slow 24s linear infinite; }
 
