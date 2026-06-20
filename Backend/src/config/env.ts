@@ -86,7 +86,9 @@ export const env = {
     port: readNumber("SMTP_PORT", 587),
     secure: readBool("SMTP_SECURE", false),
     user: readString("SMTP_USER"),
-    pass: readString("SMTP_PASS"),
+    // Gmail shows app passwords with spaces (e.g. "abcd efgh ijkl mnop");
+    // strip them so a pasted-with-spaces value still authenticates.
+    pass: readString("SMTP_PASS").replace(/\s+/g, ""),
     from: readString("MAIL_FROM", "Apex Academy <no-reply@apexacademy.uz>"),
   },
 
