@@ -63,7 +63,29 @@ export async function login(email: string, password: string): Promise<LoginResul
   });
 
   const settings = await repo.getSettings();
-  await sendMail(buildOtpEmail(admin.email, code, settings.name || "Apex Academy"));
+  // Try to deliver by the configured transport. If delivery fails (e.g. wrong
+  // SMTP credentials), don't lock the admin out — log the code to the server
+  // console as a fallback so login can still proceed.
+  try {
+    await sendMail(buildOtpEmail(admin.email, code, settings.name || "Apex Academy"));
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error(
+      "[auth] Email delivery failed; falling back to console.",
+      error instanceof Error ? error.message : error
+    );
+    // eslint-disable-next-line no-console
+    console.log(
+      [
+        "",
+        "──────────── 2FA KOD (email yuborilmadi — zaxira) ────────────",
+        `Admin: ${admin.email}`,
+        `Kirish kodi: ${code}`,
+        "──────────────────────────────────────────────────────────────",
+        "",
+      ].join("\n")
+    );
+  }
 
   return { ok: true, maskedEmail: maskEmail(admin.email) };
 }
