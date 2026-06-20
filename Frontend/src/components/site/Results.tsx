@@ -8,7 +8,7 @@ import type { UIKey } from "../../i18n";
 const FALLBACK =
   "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400&auto=format&fit=crop";
 
-/** A single diploma-style result card. */
+/** A framed certificate card — espresso frame + gold inner line, portrait. */
 function DiplomaCard({
   result,
   t,
@@ -18,44 +18,55 @@ function DiplomaCard({
   t: (key: UIKey) => string;
   onOpen: (r: StudentResultItem) => void;
 }) {
-  const cover = result.image || result.certificateImage || FALLBACK;
+  const photo = result.image || result.certificateImage || FALLBACK;
   const hasCertificate = Boolean(result.certificateImage);
   return (
     <div
       onClick={() => hasCertificate && onOpen(result)}
-      className={`cert-frame group w-72 shrink-0 overflow-hidden rounded-[14px] bg-white ${
+      className={`group w-64 shrink-0 transition-transform duration-300 hover:-translate-y-1.5 ${
         hasCertificate ? "cursor-pointer" : ""
       }`}
     >
-      <div className="relative">
-        <img
-          src={cover}
-          alt={result.studentName}
-          loading="lazy"
-          onError={(e) => ((e.target as HTMLImageElement).src = FALLBACK)}
-          className="h-40 w-full object-cover transition duration-500 group-hover:scale-105"
-        />
-        <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-caramel-deep shadow-soft">
-          {result.examType}
-        </span>
-        {/* Gold wax-seal style score medallion */}
-        <span className="absolute -bottom-6 right-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-caramel to-caramel-deep text-white shadow-soft ring-4 ring-white">
-          <span className="font-display text-sm font-extrabold leading-none">{result.score}</span>
-        </span>
-      </div>
+      {/* Espresso ornate frame */}
+      <div className="rounded-xl bg-espresso p-2.5 shadow-soft-lg">
+        {/* Gold inner line + cream "paper" */}
+        <div className="flex h-[23rem] flex-col items-center rounded-lg border-2 border-caramel/45 bg-gradient-to-b from-white to-cream px-5 py-6 text-center">
+          {/* Header */}
+          <div className="flex items-center gap-2 text-caramel-deep">
+            <Award size={15} />
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em]">{result.examType}</span>
+          </div>
+          <div className="mt-2 h-px w-16 bg-caramel/40" />
 
-      <div className="px-5 pb-5 pt-8">
-        <h3 className="font-display font-bold text-charcoal">{result.studentName}</h3>
-        {result.courseName && <p className="mt-0.5 text-xs text-charcoal-soft">{result.courseName}</p>}
-        <div className="mt-3 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-jade/12 px-2.5 py-1 text-[10px] font-semibold text-jade-deep">
-            <BadgeCheck size={11} /> Tasdiqlangan
-          </span>
-          {hasCertificate && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-caramel-deep">
-              <Eye size={12} /> {t("viewCertificate")}
-            </span>
+          {/* Student photo in a gold frame */}
+          <div className="mt-5 h-24 w-24 overflow-hidden rounded-full border-2 border-caramel/50 ring-4 ring-white">
+            <img
+              src={photo}
+              alt={result.studentName}
+              loading="lazy"
+              onError={(e) => ((e.target as HTMLImageElement).src = FALLBACK)}
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            />
+          </div>
+
+          {/* Name + score */}
+          <h3 className="font-display mt-4 text-base font-bold text-charcoal">{result.studentName}</h3>
+          <p className="font-display mt-1 text-4xl font-extrabold text-caramel-deep">{result.score}</p>
+          {result.courseName && (
+            <p className="mt-1 line-clamp-2 text-[11px] text-charcoal-soft">{result.courseName}</p>
           )}
+
+          {/* Seal */}
+          <div className="mt-auto flex flex-col items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-jade/12 px-2.5 py-1 text-[10px] font-semibold text-jade-deep">
+              <BadgeCheck size={11} /> Tasdiqlangan
+            </span>
+            {hasCertificate && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-caramel-deep opacity-0 transition group-hover:opacity-100">
+                <Eye size={12} /> {t("viewCertificate")}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>
