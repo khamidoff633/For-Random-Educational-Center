@@ -17,19 +17,23 @@ export default function Features({
       <SectionHeading eyebrow={t("whyUs")} title={t("featuresTitle")} description={t("featuresDesc")} />
 
       <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {settings.features?.slice(0, 4).map((feature, i) => (
-          <Reveal key={feature.id} delay={i * 0.08}>
-            <TiltCard className="h-full" max={6}>
-              <div className="card-soft group flex h-full flex-col gap-4 rounded-2xl p-6 transition duration-300 hover:-translate-y-1">
-                <span className="inline-flex h-14 w-14 items-center justify-center rounded-xl bg-caramel/12 text-caramel-deep transition group-hover:scale-110">
-                  <FeatureIcon name={feature.icon} />
-                </span>
-                <h3 className="font-display text-lg font-bold text-charcoal">{feature.title}</h3>
-                <p className="text-sm leading-relaxed text-charcoal-soft">{feature.desc}</p>
-              </div>
-            </TiltCard>
-          </Reveal>
-        ))}
+        {settings.features?.slice(0, 4).map((feature, i) => {
+          // Alternate caramel / jade accents for a tasteful two-tone rhythm.
+          const tone = i % 2 === 1 ? "bg-jade/12 text-jade-deep" : "bg-caramel/12 text-caramel-deep";
+          return (
+            <Reveal key={feature.id} delay={i * 0.08}>
+              <TiltCard className="h-full" max={6}>
+                <div className="card-soft group flex h-full flex-col gap-4 rounded-2xl p-6 transition duration-300 hover:-translate-y-1">
+                  <span className={`inline-flex h-14 w-14 items-center justify-center rounded-xl transition group-hover:scale-110 ${tone}`}>
+                    <FeatureIcon name={feature.icon} />
+                  </span>
+                  <h3 className="font-display text-lg font-bold text-charcoal">{feature.title}</h3>
+                  <p className="text-sm leading-relaxed text-charcoal-soft">{feature.desc}</p>
+                </div>
+              </TiltCard>
+            </Reveal>
+          );
+        })}
       </div>
     </section>
   );

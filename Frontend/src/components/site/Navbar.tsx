@@ -40,7 +40,7 @@ export default function Navbar({ settings, lang, setLang, t, onAdminClick, onEnr
       <div className="mx-auto w-[95%] max-w-7xl">
         <nav
           className={`flex items-center justify-between rounded-2xl px-4 transition-all duration-500 sm:px-6 ${
-            scrolled ? "glass-nav h-16 shadow-soft" : "h-20 bg-transparent"
+            scrolled ? "glass-nav-solid h-16" : "glass-nav h-[4.5rem]"
           }`}
         >
           {/* Logo */}

@@ -123,7 +123,7 @@ export default function Hero({ settings, t, onEnroll }: HeroProps) {
             <Users size={16} className="text-caramel" /> 5000+ {t("statStudents")}
           </span>
           <span className="flex items-center gap-2">
-            <Star size={16} className="text-caramel" /> 4.9 / 5.0
+            <Star size={16} className="text-jade" /> 4.9 / 5.0
           </span>
           <span className="flex items-center gap-2">
             <Award size={16} className="text-caramel" /> IELTS · CEFR · SAT
