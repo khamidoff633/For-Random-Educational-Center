@@ -6,13 +6,9 @@ import { Field, TextArea, Select } from "../ui/AdminField";
 import type { Course, Lead, LeadStatus } from "../../types";
 
 const STATUS_META: Record<LeadStatus, { label: string; dot: string; chip: string }> = {
-  yangi: { label: "Yangi", dot: "bg-sky-400", chip: "bg-sky-500/15 text-sky-300" },
-  boglanildi: { label: "Bog'lanildi", dot: "bg-amber-400", chip: "bg-amber-500/15 text-amber-300" },
-  royxatga_otdi: {
-    label: "Ro'yxatdan o'tdi",
-    dot: "bg-emerald-400",
-    chip: "bg-emerald-500/15 text-emerald-300",
-  },
+  yangi: { label: "Yangi", dot: "bg-sky-500", chip: "bg-sky-500/12 text-sky-700" },
+  boglanildi: { label: "Bog'lanildi", dot: "bg-amber-500", chip: "bg-amber-500/12 text-amber-700" },
+  royxatga_otdi: { label: "Ro'yxatdan o'tdi", dot: "bg-jade", chip: "bg-jade/12 text-jade-deep" },
 };
 
 const FILTERS: { key: "all" | LeadStatus; label: string }[] = [
@@ -36,10 +32,8 @@ export default function LeadsPanel({
   const [notes, setNotes] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  // Active pipeline = leads that are not archived ("Tekshirilgan").
   const active = useMemo(() => leads.filter((l) => !l.verified), [leads]);
 
-  // On open, clear the "new" badge by marking everything as seen.
   useEffect(() => {
     if (leads.some((l) => !l.seen && !l.verified)) {
       api.post("/leads/mark-seen", undefined, true).then(onChanged).catch(() => {});
@@ -48,10 +42,8 @@ export default function LeadsPanel({
   }, []);
 
   const courseName = (id: string) => courses.find((c) => c.id === id)?.name;
-
   const converted = active.filter((l) => l.status === "royxatga_otdi").length;
   const conversion = active.length ? Math.round((converted / active.length) * 100) : 0;
-
   const shown = filter === "all" ? active : active.filter((l) => l.status === filter);
 
   const setStatus = async (id: string, status: LeadStatus) => {
@@ -91,26 +83,26 @@ export default function LeadsPanel({
     <div>
       {/* Summary */}
       <div className="mb-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="glass rounded-2xl p-4">
-          <p className="text-2xl font-black text-white">{active.length}</p>
-          <p className="text-xs text-slate-400">Faol arizalar</p>
+        <div className="card-soft rounded-2xl p-4">
+          <p className="font-display text-2xl font-extrabold text-charcoal">{active.length}</p>
+          <p className="text-xs text-charcoal-soft">Faol arizalar</p>
         </div>
-        <div className="glass rounded-2xl p-4">
-          <p className="text-2xl font-black text-emerald-400">{converted}</p>
-          <p className="text-xs text-slate-400">Ro'yxatdan o'tdi</p>
+        <div className="card-soft rounded-2xl p-4">
+          <p className="font-display text-2xl font-extrabold text-jade">{converted}</p>
+          <p className="text-xs text-charcoal-soft">Ro'yxatdan o'tdi</p>
         </div>
-        <div className="glass rounded-2xl p-4">
-          <p className="flex items-center gap-1.5 text-2xl font-black text-white">
-            <TrendingUp size={18} className="text-neon-cyan" />
+        <div className="card-soft rounded-2xl p-4">
+          <p className="font-display flex items-center gap-1.5 text-2xl font-extrabold text-charcoal">
+            <TrendingUp size={18} className="text-caramel" />
             {conversion}%
           </p>
-          <p className="text-xs text-slate-400">Konversiya</p>
+          <p className="text-xs text-charcoal-soft">Konversiya</p>
         </div>
-        <div className="glass rounded-2xl p-4">
-          <p className="text-2xl font-black text-sky-400">
+        <div className="card-soft rounded-2xl p-4">
+          <p className="font-display text-2xl font-extrabold text-sky-600">
             {active.filter((l) => l.status === "yangi").length}
           </p>
-          <p className="text-xs text-slate-400">Yangi</p>
+          <p className="text-xs text-charcoal-soft">Yangi</p>
         </div>
       </div>
 
@@ -121,9 +113,7 @@ export default function LeadsPanel({
             key={f.key}
             onClick={() => setFilter(f.key)}
             className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-              filter === f.key
-                ? "bg-gradient-to-r from-neon-cyan to-neon-violet text-[#050510]"
-                : "glass text-slate-300 hover:text-white"
+              filter === f.key ? "btn-primary" : "border border-black/10 bg-white text-charcoal-soft hover:text-charcoal"
             }`}
           >
             {f.label}
@@ -132,8 +122,8 @@ export default function LeadsPanel({
       </div>
 
       {/* Table */}
-      <div className="glass overflow-hidden rounded-2xl">
-        <div className="hidden grid-cols-[1.4fr_1fr_1.2fr_1.2fr_auto] gap-3 border-b border-white/10 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-400 lg:grid">
+      <div className="card-soft overflow-hidden rounded-2xl">
+        <div className="hidden grid-cols-[1.4fr_1fr_1.2fr_1.2fr_auto] gap-3 border-b border-black/5 bg-cream-soft px-5 py-3 text-xs font-semibold uppercase tracking-wide text-charcoal-soft lg:grid">
           <span>O'quvchi</span>
           <span>Telefon</span>
           <span>Kurs</span>
@@ -141,30 +131,26 @@ export default function LeadsPanel({
           <span className="text-right">Amallar</span>
         </div>
 
-        {shown.length === 0 && (
-          <p className="px-5 py-10 text-center text-sm text-slate-500">Ariza yo'q.</p>
-        )}
+        {shown.length === 0 && <p className="px-5 py-10 text-center text-sm text-stone-500">Ariza yo'q.</p>}
 
         {shown.map((lead) => (
           <div
             key={lead.id}
-            className="grid grid-cols-1 gap-3 border-b border-white/5 px-5 py-4 transition hover:bg-white/[0.03] lg:grid-cols-[1.4fr_1fr_1.2fr_1.2fr_auto] lg:items-center"
+            className="grid grid-cols-1 gap-3 border-b border-black/5 px-5 py-4 transition hover:bg-cream-soft lg:grid-cols-[1.4fr_1fr_1.2fr_1.2fr_auto] lg:items-center"
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                {!lead.seen && <span className="h-2 w-2 shrink-0 rounded-full bg-neon-cyan" />}
-                <p className="truncate font-semibold text-white">{lead.studentName}</p>
+                {!lead.seen && <span className="h-2 w-2 shrink-0 rounded-full bg-caramel" />}
+                <p className="truncate font-semibold text-charcoal">{lead.studentName}</p>
               </div>
-              <p className="text-xs text-slate-500">
-                {new Date(lead.createdAt).toLocaleDateString("uz")}
-              </p>
+              <p className="text-xs text-stone-500">{new Date(lead.createdAt).toLocaleDateString("uz")}</p>
             </div>
 
-            <a href={`tel:${lead.phone}`} className="flex items-center gap-1.5 text-sm text-neon-cyan">
+            <a href={`tel:${lead.phone}`} className="flex items-center gap-1.5 text-sm text-caramel-deep">
               <Phone size={13} /> {lead.phone}
             </a>
 
-            <p className="truncate text-sm text-slate-300">{courseName(lead.courseId) ?? "—"}</p>
+            <p className="truncate text-sm text-charcoal-soft">{courseName(lead.courseId) ?? "—"}</p>
 
             <div>
               <Select
@@ -173,9 +159,9 @@ export default function LeadsPanel({
                 disabled={busyId === lead.id}
                 className="!py-2 text-xs"
               >
-                <option value="yangi" className="bg-ink-800">Yangi</option>
-                <option value="boglanildi" className="bg-ink-800">Bog'lanildi</option>
-                <option value="royxatga_otdi" className="bg-ink-800">Ro'yxatdan o'tdi</option>
+                <option value="yangi">Yangi</option>
+                <option value="boglanildi">Bog'lanildi</option>
+                <option value="royxatga_otdi">Ro'yxatdan o'tdi</option>
               </Select>
             </div>
 
@@ -186,7 +172,7 @@ export default function LeadsPanel({
                   setNotes(lead.notes);
                 }}
                 title="Izoh"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-black/[0.04] text-charcoal-soft transition hover:bg-black/[0.08] hover:text-charcoal"
               >
                 <StickyNote size={15} />
               </button>
@@ -194,14 +180,14 @@ export default function LeadsPanel({
                 onClick={() => verify(lead.id)}
                 disabled={busyId === lead.id}
                 title="Tekshirildi (arxivga)"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400 transition hover:bg-emerald-500/25 disabled:opacity-50"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-jade/12 text-jade transition hover:bg-jade/20 disabled:opacity-50"
               >
                 <Check size={16} />
               </button>
               <button
                 onClick={() => remove(lead.id)}
                 title="O'chirish"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-rose-500/15 text-rose-400 transition hover:bg-rose-500/25"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-rose-500/12 text-rose-600 transition hover:bg-rose-500/20"
               >
                 <Trash2 size={15} />
               </button>
@@ -210,28 +196,26 @@ export default function LeadsPanel({
         ))}
       </div>
 
-      <p className="mt-3 text-xs text-slate-500">
-        "Tekshirildi" tugmasi arizani <span className="text-slate-300">Tekshirilgan arizalar</span>{" "}
-        bo'limiga o'tkazadi (7 kun saqlanadi, keyin avtomatik o'chadi).
+      <p className="mt-3 text-xs text-stone-500">
+        "Tekshirildi" tugmasi arizani <span className="text-charcoal">Tekshirilgan arizalar</span> bo'limiga
+        o'tkazadi (7 kun saqlanadi, keyin avtomatik o'chadi).
       </p>
 
-      <Modal open={!!editing} onClose={() => setEditing(null)}>
+      <Modal open={!!editing} onClose={() => setEditing(null)} tone="light">
         {editing && (
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${STATUS_META[editing.status].chip}`}
-              >
-                <span className={`h-1.5 w-1.5 rounded-full ${STATUS_META[editing.status].dot}`} />
-                {STATUS_META[editing.status].label}
-              </span>
-            </div>
-            <h3 className="text-lg font-bold text-white">{editing.studentName}</h3>
-            <p className="text-sm text-neon-cyan">{editing.phone}</p>
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${STATUS_META[editing.status].chip}`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${STATUS_META[editing.status].dot}`} />
+              {STATUS_META[editing.status].label}
+            </span>
+            <h3 className="font-display text-lg font-bold text-charcoal">{editing.studentName}</h3>
+            <p className="text-sm text-caramel-deep">{editing.phone}</p>
             <Field label="Izoh">
               <TextArea rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} />
             </Field>
-            <button onClick={saveNotes} className="btn-neon w-full rounded-xl py-3 text-sm">
+            <button onClick={saveNotes} className="btn-primary w-full rounded-xl py-3 text-sm">
               Saqlash
             </button>
           </div>

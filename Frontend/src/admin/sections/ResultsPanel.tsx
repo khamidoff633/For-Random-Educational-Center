@@ -61,15 +61,15 @@ export default function ResultsPanel({
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
-        <h3 className="text-lg font-bold text-white">O'quvchilar natijalari ({results.length})</h3>
-        <button onClick={() => setEditing({ ...EMPTY })} className="btn-neon inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm">
+        <h3 className="font-display text-lg font-bold text-charcoal">O'quvchilar natijalari ({results.length})</h3>
+        <button onClick={() => setEditing({ ...EMPTY })} className="btn-primary inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm">
           <Plus size={16} /> Yangi natija
         </button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {results.map((result) => (
-          <div key={result.id} className="glass overflow-hidden rounded-2xl">
+          <div key={result.id} className="card-soft overflow-hidden rounded-2xl">
             <div className="flex gap-3 p-4">
               <img
                 src={result.certificateImage || result.image || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop"}
@@ -77,20 +77,20 @@ export default function ResultsPanel({
                 className="h-16 w-16 shrink-0 rounded-xl object-cover"
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-bold text-white">{result.studentName}</p>
-                <p className="text-xs text-neon-cyan">{result.examType} · {result.score}</p>
+                <p className="truncate font-bold text-charcoal">{result.studentName}</p>
+                <p className="text-xs font-semibold text-caramel-deep">{result.examType} · {result.score}</p>
                 {result.certificateImage && (
-                  <span className="mt-1 inline-flex items-center gap-1 text-[10px] text-emerald-400">
+                  <span className="mt-1 inline-flex items-center gap-1 text-[10px] text-jade">
                     <Award size={11} /> Sertifikat bor
                   </span>
                 )}
               </div>
             </div>
-            <div className="flex border-t border-white/10">
-              <button onClick={() => setEditing(result)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs text-slate-300 transition hover:bg-white/5 hover:text-neon-cyan">
+            <div className="flex border-t border-black/5">
+              <button onClick={() => setEditing(result)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs text-charcoal-soft transition hover:bg-cream-soft hover:text-caramel-deep">
                 <Pencil size={13} /> Tahrirlash
               </button>
-              <button onClick={() => remove(result.id)} className="flex flex-1 items-center justify-center gap-1.5 border-l border-white/10 py-2.5 text-xs text-slate-300 transition hover:bg-rose-500/10 hover:text-rose-400">
+              <button onClick={() => remove(result.id)} className="flex flex-1 items-center justify-center gap-1.5 border-l border-black/5 py-2.5 text-xs text-charcoal-soft transition hover:bg-rose-50 hover:text-rose-600">
                 <Trash2 size={13} /> O'chirish
               </button>
             </div>
@@ -98,15 +98,15 @@ export default function ResultsPanel({
         ))}
       </div>
 
-      <Modal open={!!editing} onClose={() => setEditing(null)} maxWidth="max-w-2xl">
+      <Modal open={!!editing} onClose={() => setEditing(null)} maxWidth="max-w-2xl" tone="light">
         {editing && (
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-white">{editing.id ? "Natijani tahrirlash" : "Yangi natija"}</h3>
+            <h3 className="font-display text-lg font-bold text-charcoal">{editing.id ? "Natijani tahrirlash" : "Yangi natija"}</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="O'quvchi ismi"><TextInput value={editing.studentName ?? ""} onChange={(e) => set("studentName", e.target.value)} /></Field>
               <Field label="Imtihon turi">
                 <Select value={editing.examType ?? "IELTS"} onChange={(e) => set("examType", e.target.value as ExamType)}>
-                  {EXAM_TYPES.map((t) => <option key={t} value={t} className="bg-ink-800">{t}</option>)}
+                  {EXAM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                 </Select>
               </Field>
               <Field label="Natija (ball)"><TextInput value={editing.score ?? ""} onChange={(e) => set("score", e.target.value)} placeholder="masalan: 8.5" /></Field>
@@ -119,8 +119,8 @@ export default function ResultsPanel({
 
             <div>
               <div className="mb-1.5 flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Tasnif (ixtiyoriy)</span>
-                <span className={`text-[11px] ${descLength > DESC_MAX ? "text-rose-400" : "text-slate-500"}`}>
+                <span className="text-xs font-semibold uppercase tracking-wide text-charcoal-soft">Tasnif (ixtiyoriy)</span>
+                <span className={`text-[11px] ${descLength > DESC_MAX ? "text-rose-600" : "text-stone-500"}`}>
                   {descLength}/{DESC_MAX}
                 </span>
               </div>
@@ -133,8 +133,8 @@ export default function ResultsPanel({
               />
             </div>
 
-            {error && <p className="text-sm text-rose-400">{error}</p>}
-            <button onClick={save} disabled={saving} className="btn-neon inline-flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm disabled:opacity-60">
+            {error && <p className="text-sm text-rose-600">{error}</p>}
+            <button onClick={save} disabled={saving} className="btn-primary inline-flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm disabled:opacity-60">
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Saqlash
             </button>
           </div>

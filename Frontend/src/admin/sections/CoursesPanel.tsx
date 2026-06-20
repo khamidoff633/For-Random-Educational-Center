@@ -81,15 +81,15 @@ export default function CoursesPanel({
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
-        <h3 className="text-lg font-bold text-white">Kurslar ({courses.length})</h3>
-        <button onClick={() => setEditing({ ...EMPTY })} className="btn-neon inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm">
+        <h3 className="font-display text-lg font-bold text-charcoal">Kurslar ({courses.length})</h3>
+        <button onClick={() => setEditing({ ...EMPTY })} className="btn-primary inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm">
           <Plus size={16} /> Yangi kurs
         </button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {courses.map((course) => (
-          <div key={course.id} className="glass overflow-hidden rounded-2xl">
+          <div key={course.id} className="card-soft overflow-hidden rounded-2xl">
             <div className="flex gap-3 p-4">
               <img
                 src={course.image || "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=200&auto=format&fit=crop"}
@@ -97,16 +97,16 @@ export default function CoursesPanel({
                 className="h-16 w-16 shrink-0 rounded-xl object-cover"
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-bold text-white">{course.name}</p>
-                <p className="text-xs text-neon-cyan">{course.category}</p>
-                <p className="mt-0.5 truncate text-xs text-slate-400">{teacherName(course.teacherId)} · {course.price}</p>
+                <p className="truncate font-bold text-charcoal">{course.name}</p>
+                <p className="text-xs font-semibold text-caramel-deep">{course.category}</p>
+                <p className="mt-0.5 truncate text-xs text-charcoal-soft">{teacherName(course.teacherId)} · {course.price}</p>
               </div>
             </div>
-            <div className="flex border-t border-white/10">
-              <button onClick={() => setEditing(course)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs text-slate-300 transition hover:bg-white/5 hover:text-neon-cyan">
+            <div className="flex border-t border-black/5">
+              <button onClick={() => setEditing(course)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs text-charcoal-soft transition hover:bg-cream-soft hover:text-caramel-deep">
                 <Pencil size={13} /> Tahrirlash
               </button>
-              <button onClick={() => remove(course.id)} className="flex flex-1 items-center justify-center gap-1.5 border-l border-white/10 py-2.5 text-xs text-slate-300 transition hover:bg-rose-500/10 hover:text-rose-400">
+              <button onClick={() => remove(course.id)} className="flex flex-1 items-center justify-center gap-1.5 border-l border-black/5 py-2.5 text-xs text-charcoal-soft transition hover:bg-rose-50 hover:text-rose-600">
                 <Trash2 size={13} /> O'chirish
               </button>
             </div>
@@ -114,18 +114,18 @@ export default function CoursesPanel({
         ))}
       </div>
 
-      <Modal open={!!editing} onClose={() => setEditing(null)} maxWidth="max-w-2xl">
+      <Modal open={!!editing} onClose={() => setEditing(null)} maxWidth="max-w-2xl" tone="light">
         {editing && (
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-white">{editing.id ? "Kursni tahrirlash" : "Yangi kurs"}</h3>
+            <h3 className="font-display text-lg font-bold text-charcoal">{editing.id ? "Kursni tahrirlash" : "Yangi kurs"}</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Kurs nomi"><TextInput value={editing.name ?? ""} onChange={(e) => set("name", e.target.value)} /></Field>
               <Field label="Yo'nalish"><TextInput value={editing.category ?? ""} onChange={(e) => set("category", e.target.value)} /></Field>
             </div>
             <div>
               <div className="mb-1.5 flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Tavsif</span>
-                <button onClick={generateDescription} disabled={aiBusy} className="inline-flex items-center gap-1 text-xs text-neon-violet transition hover:text-neon-cyan disabled:opacity-60">
+                <span className="text-xs font-semibold uppercase tracking-wide text-charcoal-soft">Tavsif</span>
+                <button onClick={generateDescription} disabled={aiBusy} className="inline-flex items-center gap-1 text-xs text-jade transition hover:text-jade-deep disabled:opacity-60">
                   {aiBusy ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />} AI yozsin
                 </button>
               </div>
@@ -134,8 +134,8 @@ export default function CoursesPanel({
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="O'qituvchi">
                 <Select value={editing.teacherId ?? ""} onChange={(e) => set("teacherId", e.target.value)}>
-                  <option value="" className="bg-ink-800">Tanlanmagan</option>
-                  {teachers.map((t) => <option key={t.id} value={t.id} className="bg-ink-800">{t.name}</option>)}
+                  <option value="">Tanlanmagan</option>
+                  {teachers.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </Select>
               </Field>
               <Field label="Narxi"><TextInput value={editing.price ?? ""} onChange={(e) => set("price", e.target.value)} /></Field>
@@ -145,8 +145,8 @@ export default function CoursesPanel({
               <Field label="Vaqti"><TextInput value={editing.time ?? ""} onChange={(e) => set("time", e.target.value)} /></Field>
             </div>
             <MediaUpload label="Kurs rasmi" value={editing.image ?? ""} onChange={(v) => set("image", v)} />
-            {error && <p className="text-sm text-rose-400">{error}</p>}
-            <button onClick={save} disabled={saving} className="btn-neon inline-flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm disabled:opacity-60">
+            {error && <p className="text-sm text-rose-600">{error}</p>}
+            <button onClick={save} disabled={saving} className="btn-primary inline-flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm disabled:opacity-60">
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Saqlash
             </button>
           </div>

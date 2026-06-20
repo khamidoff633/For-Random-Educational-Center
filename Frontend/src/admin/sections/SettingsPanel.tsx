@@ -33,8 +33,7 @@ export default function SettingsPanel({
       { id: `feat_${Date.now()}`, title: "Yangi afzallik", desc: "", icon: "Sparkles" },
     ]);
 
-  const removeFeature = (id: string) =>
-    set("features", form.features.filter((f) => f.id !== id));
+  const removeFeature = (id: string) => set("features", form.features.filter((f) => f.id !== id));
 
   const save = async () => {
     setSaving(true);
@@ -57,8 +56,9 @@ export default function SettingsPanel({
 
   return (
     <div className="space-y-6">
-      {/* Brand */}      <section className="glass rounded-2xl p-6">
-        <h3 className="mb-4 font-bold text-white">Brend ma'lumotlari</h3>
+      {/* Brand */}
+      <section className="card-soft rounded-2xl p-6">
+        <h3 className="font-display mb-4 font-bold text-charcoal">Brend ma'lumotlari</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Markaz nomi">
             <TextInput value={form.name} onChange={(e) => set("name", e.target.value)} />
@@ -75,8 +75,8 @@ export default function SettingsPanel({
       </section>
 
       {/* Hero */}
-      <section className="glass rounded-2xl p-6">
-        <h3 className="mb-4 font-bold text-white">Bosh sahifa (Hero)</h3>
+      <section className="card-soft rounded-2xl p-6">
+        <h3 className="font-display mb-4 font-bold text-charcoal">Bosh sahifa (Hero)</h3>
         <div className="grid gap-4">
           <Field label="Sarlavha">
             <TextInput value={form.heroTitle} onChange={(e) => set("heroTitle", e.target.value)} />
@@ -89,8 +89,8 @@ export default function SettingsPanel({
               value={form.heroMediaType ?? "image"}
               onChange={(e) => set("heroMediaType", e.target.value as "image" | "video")}
             >
-              <option value="image" className="bg-ink-800">Rasm</option>
-              <option value="video" className="bg-ink-800">Video</option>
+              <option value="image">Rasm</option>
+              <option value="video">Video</option>
             </Select>
           </Field>
           <MediaUpload label="Fon rasmi" value={form.heroBgImage} onChange={(v) => set("heroBgImage", v)} />
@@ -104,8 +104,8 @@ export default function SettingsPanel({
       </section>
 
       {/* Contact & social */}
-      <section className="glass rounded-2xl p-6">
-        <h3 className="mb-4 font-bold text-white">Aloqa va ijtimoiy tarmoqlar</h3>
+      <section className="card-soft rounded-2xl p-6">
+        <h3 className="font-display mb-4 font-bold text-charcoal">Aloqa va ijtimoiy tarmoqlar</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Telefon"><TextInput value={form.phone} onChange={(e) => set("phone", e.target.value)} /></Field>
           <Field label="Email"><TextInput value={form.email} onChange={(e) => set("email", e.target.value)} /></Field>
@@ -119,19 +119,17 @@ export default function SettingsPanel({
       </section>
 
       {/* Features */}
-      <section className="glass rounded-2xl p-6">
+      <section className="card-soft rounded-2xl p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-bold text-white">
-            Afzalliklar <span className="text-xs font-normal text-slate-500">({form.features.length}/{MAX_FEATURES})</span>
+          <h3 className="font-display font-bold text-charcoal">
+            Afzalliklar <span className="text-xs font-normal text-stone-500">({form.features.length}/{MAX_FEATURES})</span>
           </h3>
           <button
             onClick={addFeature}
             disabled={featuresFull}
             title={featuresFull ? `Maksimal ${MAX_FEATURES} ta afzallik` : "Afzallik qo'shish"}
             className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition ${
-              featuresFull
-                ? "cursor-not-allowed border border-white/5 text-slate-600"
-                : "btn-ghost"
+              featuresFull ? "cursor-not-allowed border border-black/5 text-stone-400" : "btn-outline"
             }`}
           >
             <Plus size={14} /> Qo'shish
@@ -139,7 +137,7 @@ export default function SettingsPanel({
         </div>
         <div className="space-y-4">
           {form.features.map((feature) => (
-            <div key={feature.id} className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <div key={feature.id} className="rounded-xl border border-black/10 bg-cream-soft p-4">
               <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
                 <Field label="Sarlavha">
                   <TextInput value={feature.title} onChange={(e) => setFeature(feature.id, { title: e.target.value })} />
@@ -147,14 +145,14 @@ export default function SettingsPanel({
                 <Field label="Ikonka">
                   <Select value={feature.icon} onChange={(e) => setFeature(feature.id, { icon: e.target.value })}>
                     {ICON_OPTIONS.map((icon) => (
-                      <option key={icon} value={icon} className="bg-ink-800">{icon}</option>
+                      <option key={icon} value={icon}>{icon}</option>
                     ))}
                   </Select>
                 </Field>
                 <div className="flex items-end">
                   <button
                     onClick={() => removeFeature(feature.id)}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-rose-500/15 text-rose-400 transition hover:bg-rose-500/25"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-rose-500/12 text-rose-600 transition hover:bg-rose-500/20"
                     aria-label="O'chirish"
                   >
                     <Trash2 size={16} />
@@ -171,19 +169,15 @@ export default function SettingsPanel({
         </div>
       </section>
 
-      {error && <p className="text-sm text-rose-400">{error}</p>}
+      {error && <p className="text-sm text-rose-600">{error}</p>}
 
       <div className="sticky bottom-4 flex items-center justify-end gap-3">
-        {!isDirty && !saved && (
-          <span className="text-xs text-slate-500">O'zgarish kiritilmagan</span>
-        )}
+        {!isDirty && !saved && <span className="text-xs text-stone-500">O'zgarish kiritilmagan</span>}
         <button
           onClick={save}
           disabled={saving || !isDirty}
           className={`inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition ${
-            isDirty
-              ? "btn-neon shadow-2xl"
-              : "cursor-not-allowed bg-white/5 text-slate-600"
+            isDirty ? "btn-primary shadow-soft" : "cursor-not-allowed bg-black/5 text-stone-400"
           }`}
         >
           {saving ? <Loader2 size={16} className="animate-spin" /> : saved ? <CheckCircle2 size={16} /> : <Save size={16} />}

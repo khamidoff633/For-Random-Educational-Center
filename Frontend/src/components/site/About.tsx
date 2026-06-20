@@ -65,7 +65,7 @@ export default function About({
                 transition={{ delay: i * 0.1 }}
                 className="flex items-center gap-3 text-charcoal"
               >
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-caramel/15 text-caramel-deep">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-jade/12 text-jade-deep">
                   <Check size={14} />
                 </span>
                 {item}

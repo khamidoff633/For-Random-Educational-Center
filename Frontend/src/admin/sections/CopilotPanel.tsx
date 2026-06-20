@@ -59,36 +59,36 @@ export default function CopilotPanel({ onChanged }: { onChanged: () => void }) {
   return (
     <div className="flex h-[calc(100vh-12rem)] flex-col">
       <div className="mb-4 flex items-center gap-2">
-        <Sparkles size={18} className="text-neon-violet" />
-        <h3 className="text-lg font-bold text-white">AI Copilot</h3>
+        <Sparkles size={18} className="text-jade" />
+        <h3 className="font-display text-lg font-bold text-charcoal">AI Copilot</h3>
       </div>
 
-      <div className="glass flex-1 space-y-4 overflow-y-auto rounded-2xl p-4">
+      <div className="card-soft flex-1 space-y-4 overflow-y-auto rounded-2xl p-4">
         {messages.map((msg, i) => (
           <div key={i} className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}>
             <span
               className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-                msg.role === "ai" ? "bg-gradient-to-br from-neon-cyan/30 to-neon-violet/30 text-neon-cyan" : "bg-white/10 text-slate-300"
+                msg.role === "ai" ? "bg-caramel/15 text-caramel-deep" : "bg-black/5 text-charcoal-soft"
               }`}
             >
               {msg.role === "ai" ? <Bot size={16} /> : <User size={16} />}
             </span>
             <div
               className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                msg.role === "ai" ? "bg-white/5 text-slate-200" : "bg-neon-cyan/15 text-white"
+                msg.role === "ai" ? "bg-cream-soft text-charcoal" : "bg-caramel/12 text-charcoal"
               }`}
             >
               <p className="whitespace-pre-wrap">{msg.text}</p>
               {!!msg.actions && msg.actions > 0 && (
-                <p className="mt-2 text-[11px] font-semibold text-emerald-400">
-                  ✓ {msg.actions} ta amal bajarildi
+                <p className="mt-2 text-[11px] font-semibold text-jade">
+                  {msg.actions} ta amal bajarildi
                 </p>
               )}
             </div>
           </div>
         ))}
         {loading && (
-          <div className="flex items-center gap-2 text-sm text-slate-400">
+          <div className="flex items-center gap-2 text-sm text-charcoal-soft">
             <Loader2 size={15} className="animate-spin" /> Yozmoqda...
           </div>
         )}
@@ -101,7 +101,7 @@ export default function CopilotPanel({ onChanged }: { onChanged: () => void }) {
             key={s}
             onClick={() => send(s)}
             disabled={loading}
-            className="glass rounded-full px-3 py-1.5 text-xs text-slate-300 transition hover:text-neon-cyan disabled:opacity-50"
+            className="rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-charcoal-soft transition hover:text-caramel-deep disabled:opacity-50"
           >
             {s}
           </button>
@@ -119,12 +119,12 @@ export default function CopilotPanel({ onChanged }: { onChanged: () => void }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Buyruq yoki savol yozing..."
-          className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-neon-cyan"
+          className="flex-1 rounded-xl border border-black/10 bg-white px-4 py-3 text-sm text-charcoal outline-none focus:border-caramel placeholder:text-stone-400"
         />
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="btn-neon inline-flex items-center justify-center rounded-xl px-5 disabled:opacity-50"
+          className="btn-primary inline-flex items-center justify-center rounded-xl px-5 disabled:opacity-50"
         >
           <Send size={16} />
         </button>

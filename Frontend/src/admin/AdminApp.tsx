@@ -81,7 +81,6 @@ export default function AdminApp({ onExit }: { onExit: () => void }) {
     setStats(st);
   }, []);
 
-  // Restore an existing session on mount.
   useEffect(() => {
     (async () => {
       if (!getToken()) {
@@ -113,8 +112,8 @@ export default function AdminApp({ onExit }: { onExit: () => void }) {
 
   if (checking) {
     return (
-      <div className="bg-aurora flex min-h-screen items-center justify-center text-slate-400">
-        <Loader2 size={28} className="animate-spin text-neon-cyan" />
+      <div className="bg-warm flex min-h-screen items-center justify-center text-charcoal-soft">
+        <Loader2 size={28} className="animate-spin text-caramel" />
       </div>
     );
   }
@@ -125,21 +124,21 @@ export default function AdminApp({ onExit }: { onExit: () => void }) {
   const newLeadsCount = leads.filter((l) => !l.seen && !l.verified).length;
 
   return (
-    <div className="bg-aurora min-h-screen lg:flex">
+    <div className="bg-warm min-h-screen lg:flex">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 transform glass-strong p-5 transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 transform border-r border-black/5 bg-white p-5 shadow-soft transition-transform lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-neon-cyan to-neon-violet text-[#050510]">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-caramel to-caramel-deep text-white">
               <GraduationCap size={20} strokeWidth={2.5} />
             </span>
-            <span className="font-black text-white">{settings?.logoText || "Apex Academy"}</span>
+            <span className="font-display font-extrabold text-charcoal">{settings?.logoText || "Apex Academy"}</span>
           </div>
-          <button onClick={() => setSidebarOpen(false)} className="text-slate-400 lg:hidden">
+          <button onClick={() => setSidebarOpen(false)} className="text-charcoal-soft lg:hidden">
             <X size={20} />
           </button>
         </div>
@@ -154,14 +153,14 @@ export default function AdminApp({ onExit }: { onExit: () => void }) {
               }}
               className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
                 section === item.id
-                  ? "bg-gradient-to-r from-neon-cyan/20 to-neon-violet/20 text-white shadow-[0_0_18px_rgba(34,211,238,0.25)]"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+                  ? "bg-caramel/12 text-charcoal shadow-[inset_3px_0_0_0_var(--color-caramel)]"
+                  : "text-charcoal-soft hover:bg-cream-soft hover:text-charcoal"
               }`}
             >
               {item.icon}
               <span className="flex-1 text-left">{item.label}</span>
               {item.id === "leads" && newLeadsCount > 0 && (
-                <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-neon-cyan px-1.5 text-[11px] font-bold text-[#050510]">
+                <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-caramel px-1.5 text-[11px] font-bold text-white">
                   {newLeadsCount}
                 </span>
               )}
@@ -172,19 +171,19 @@ export default function AdminApp({ onExit }: { onExit: () => void }) {
         <div className="absolute inset-x-5 bottom-5 space-y-1.5">
           <button
             onClick={() => setPwOpen(true)}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-400 transition hover:bg-white/5 hover:text-white"
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-charcoal-soft transition hover:bg-cream-soft hover:text-charcoal"
           >
             <KeyRound size={18} /> Parolni o'zgartirish
           </button>
           <button
             onClick={onExit}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-400 transition hover:bg-white/5 hover:text-white"
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-charcoal-soft transition hover:bg-cream-soft hover:text-charcoal"
           >
             <ArrowLeft size={18} /> Saytga qaytish
           </button>
           <button
             onClick={logout}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-rose-400 transition hover:bg-rose-500/10"
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
           >
             <LogOut size={18} /> Chiqish
           </button>
@@ -192,16 +191,16 @@ export default function AdminApp({ onExit }: { onExit: () => void }) {
       </aside>
 
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Main */}
-      <div className="flex-1 lg:ml-0">
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-white/10 bg-[#060611]/80 px-4 py-4 backdrop-blur sm:px-8">
-          <button onClick={() => setSidebarOpen(true)} className="text-slate-300 lg:hidden">
+      <div className="flex-1">
+        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-black/5 bg-cream/85 px-4 py-4 backdrop-blur sm:px-8">
+          <button onClick={() => setSidebarOpen(true)} className="text-charcoal-soft lg:hidden">
             <Menu size={22} />
           </button>
-          <h1 className="text-xl font-black text-white">{activeLabel}</h1>
+          <h1 className="font-display text-xl font-extrabold text-charcoal">{activeLabel}</h1>
         </header>
 
         <main className="p-4 sm:p-8">
@@ -248,18 +247,18 @@ function ChangePasswordModal({ open, onClose }: { open: boolean; onClose: () => 
   };
 
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={onClose} tone="light">
       <form onSubmit={submit} className="space-y-4">
-        <h3 className="text-lg font-bold text-white">Parolni o'zgartirish</h3>
+        <h3 className="font-display text-lg font-bold text-charcoal">Parolni o'zgartirish</h3>
         <Field label="Joriy parol">
           <TextInput type="password" value={current} onChange={(e) => setCurrent(e.target.value)} required />
         </Field>
         <Field label="Yangi parol" hint="Kamida 8 ta belgi">
           <TextInput type="password" value={next} onChange={(e) => setNext(e.target.value)} required />
         </Field>
-        {error && <p className="text-sm text-rose-400">{error}</p>}
-        {msg && <p className="text-sm text-emerald-400">{msg}</p>}
-        <button type="submit" disabled={busy} className="btn-neon w-full rounded-xl py-3 text-sm disabled:opacity-60">
+        {error && <p className="text-sm text-rose-600">{error}</p>}
+        {msg && <p className="text-sm text-jade">{msg}</p>}
+        <button type="submit" disabled={busy} className="btn-primary w-full rounded-xl py-3 text-sm disabled:opacity-60">
           {busy ? "Saqlanmoqda..." : "Saqlash"}
         </button>
       </form>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Award, Eye, Star } from "lucide-react";
+import { Award, Eye, Star, BadgeCheck } from "lucide-react";
 import SectionHeading from "../ui/SectionHeading";
 import Reveal from "../ui/Reveal";
 import Modal from "../ui/Modal";
@@ -79,12 +79,15 @@ export default function Results({
                   {selected.examType} · {selected.score}
                 </p>
               </div>
+              <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-jade/12 px-3 py-1 text-[11px] font-semibold text-jade-deep">
+                <BadgeCheck size={13} /> Tasdiqlangan
+              </span>
             </div>
             {selected.certificateImage && (
               <img
                 src={selected.certificateImage}
                 alt="Sertifikat"
-                className="w-full rounded-xl border border-black/10"
+                className="cert-frame mt-2 w-full"
               />
             )}
             {selected.description && (

@@ -16,6 +16,10 @@
   --color-caramel-deep: #a85d12;
   --color-espresso: #1c1a17;
 
+  /* Secondary accent — deep emerald/jade (used sparingly) */
+  --color-jade: #0f6e5c;
+  --color-jade-deep: #0a5546;
+
   /* Dark palette (admin panel) */
   --color-ink-950: #060611;
   --color-ink-900: #0b0b1a;
@@ -58,10 +62,35 @@ body {
   inset: 0;
   z-index: -2;
   background:
-    radial-gradient(38rem 38rem at 8% -8%, rgba(200, 118, 26, 0.1), transparent 60%),
-    radial-gradient(34rem 34rem at 100% 0%, rgba(200, 118, 26, 0.07), transparent 55%),
+    radial-gradient(40rem 40rem at 8% -8%, rgba(200, 118, 26, 0.1), transparent 60%),
+    radial-gradient(34rem 34rem at 100% 0%, rgba(15, 110, 92, 0.07), transparent 55%),
     radial-gradient(40rem 40rem at 50% 120%, rgba(28, 26, 23, 0.05), transparent 60%);
   pointer-events: none;
+}
+/* Subtle paper grain — premium artistic warmth (very low opacity). */
+.bg-warm::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+}
+
+/* Elegant gold certificate frame (double border + soft shadow). */
+.cert-frame {
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 5px #ffffff,
+    0 0 0 6px rgba(200, 118, 26, 0.3),
+    0 24px 60px -22px rgba(28, 26, 23, 0.3);
+}
+
+/* Soft warm gradient band used between sections for an airy, Ghibli-like feel. */
+.section-glow {
+  background: radial-gradient(60rem 24rem at 50% 0%, rgba(200, 118, 26, 0.06), transparent 70%);
 }
 
 /* Light glass navbar */
