@@ -37,12 +37,19 @@
   color-scheme: light;
 }
 
+html {
+  background-color: #faf8f5;
+  /* Stop the rubber-band overscroll that reveals a white sheet at the edges. */
+  overscroll-behavior: none;
+}
+
 body {
   background-color: #faf8f5;
   color: #1a1a1a;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  overscroll-behavior: none;
 }
 
 /* ===================== PUBLIC (warm light) ===================== */
