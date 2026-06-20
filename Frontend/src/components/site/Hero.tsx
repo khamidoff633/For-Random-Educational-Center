@@ -40,9 +40,9 @@ export default function Hero({ settings, t, onEnroll }: HeroProps) {
     isDirectVideo(settings.heroVideoUrl);
 
   return (
-    <section id="top" className="relative flex min-h-[94vh] items-end overflow-hidden">
+    <section id="top" className="relative isolate flex min-h-[94vh] items-end overflow-hidden">
       {/* Full-width background media */}
-      <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 z-0">
         {useVideo ? (
           <video
             className="h-full w-full object-cover"
@@ -67,7 +67,7 @@ export default function Hero({ settings, t, onEnroll }: HeroProps) {
       </div>
 
       {/* Content sits in the lower area, over the cream fade (readable) */}
-      <div className="mx-auto w-[92%] max-w-4xl pb-20 pt-44 text-center">
+      <div className="relative z-10 mx-auto w-[92%] max-w-4xl pb-20 pt-44 text-center">
         <motion.span
           {...fadeUp}
           transition={{ duration: 0.5 }}
