@@ -62,7 +62,7 @@ export default function Contact({
       <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Info card (espresso) */}
         <Reveal>
-          <div className="flex h-full flex-col justify-between rounded-3xl bg-espresso p-8 text-cream shadow-soft-lg">
+          <div className="flex h-full flex-col justify-between rounded-3xl bg-navy p-8 text-cream shadow-soft-lg">
             <div className="space-y-5">
               {info.map((row, i) => (
                 <a key={i} href={row.href} className="flex items-center gap-4 transition hover:text-caramel">

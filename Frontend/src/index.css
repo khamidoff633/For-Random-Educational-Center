@@ -20,6 +20,10 @@
   --color-jade: #0f6e5c;
   --color-jade-deep: #0a5546;
 
+  /* Depth/anchor accent — deep navy (footer, contact, select details) */
+  --color-navy: #1e3a5f;
+  --color-navy-deep: #16314f;
+
   /* Dark palette (admin panel) */
   --color-ink-950: #060611;
   --color-ink-900: #0b0b1a;
