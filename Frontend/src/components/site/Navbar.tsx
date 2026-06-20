@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GraduationCap, Menu, X, UserCog } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -15,14 +15,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ settings, lang, setLang, t, onAdminClick, onEnroll }: NavbarProps) {
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   const links: { href: string; key: UIKey }[] = [
     { href: "#about", key: "navAbout" },
@@ -34,15 +27,9 @@ export default function Navbar({ settings, lang, setLang, t, onAdminClick, onEnr
   ];
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${scrolled ? "py-2" : "py-4"}`}
-    >
+    <header className="fixed inset-x-0 top-0 z-50 py-4">
       <div className="mx-auto w-[95%] max-w-7xl">
-        <nav
-          className={`flex items-center justify-between rounded-2xl px-4 transition-all duration-500 sm:px-6 ${
-            scrolled ? "glass-nav-solid h-16" : "glass-nav h-[4.5rem]"
-          }`}
-        >
+        <nav className="flex h-[4.5rem] items-center justify-between rounded-2xl px-4 glass-nav sm:px-6">
           {/* Logo */}
           <a href="#top" className="flex items-center gap-2.5">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-caramel to-caramel-deep text-white shadow-soft">
