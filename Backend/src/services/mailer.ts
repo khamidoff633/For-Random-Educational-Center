@@ -31,6 +31,8 @@ async function getSmtpTransport(): Promise<any> {
     host: env.mail.host,
     port: env.mail.port,
     secure: env.mail.secure,
+    // For STARTTLS ports (e.g. 587) require an encrypted upgrade.
+    requireTLS: !env.mail.secure,
     auth: env.mail.user ? { user: env.mail.user, pass: env.mail.pass } : undefined,
   });
   return cachedTransport;
