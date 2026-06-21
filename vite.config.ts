@@ -12,15 +12,11 @@ export default defineConfig(() => {
       },
     },
     build: {
-      // Frontendni to'g'ridan-to'g'ri loyiha ildizidagi (root) dist papkasiga quradi
-      outDir: path.resolve(__dirname, '../dist'),
-      emptyOutDir: true, // Har safar yangi build bo'lganda eski fayllarni tozalaydi
+      outDir: 'dist', // Endi fayllar Frontend papkasini ichidagi dist-ga yig'iladi
+      emptyOutDir: true,
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
   };
