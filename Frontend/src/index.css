@@ -183,8 +183,71 @@ body {
   width: 100%;
 }
 
-/* ===================== ADMIN (dark glass) ===================== */
+/* ===================== GALLERY (deep-emerald exhibit) =====================
+   The gallery page inverts the site's palette: jade/espresso become dominant
+   and gold is the rare accent — giving it a distinct "museum" character. */
+.bg-gallery {
+  position: relative;
+  isolation: isolate;
+  background-color: #08332b;
+  color: #f3efe8;
+}
+.bg-gallery::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(50rem 40rem at 8% -10%, rgba(15, 110, 92, 0.55), transparent 60%),
+    radial-gradient(42rem 42rem at 100% 8%, rgba(36, 28, 22, 0.7), transparent 55%),
+    radial-gradient(52rem 42rem at 50% 120%, rgba(6, 24, 20, 0.95), transparent 62%),
+    linear-gradient(160deg, #0c4a3e 0%, #08332b 48%, #241c16 100%);
+  pointer-events: none;
+}
+.bg-gallery::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
 
+/* Dark glass top bar for the gallery page */
+.glass-nav-dark {
+  background: rgba(8, 40, 33, 0.4);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -20px rgba(0, 0, 0, 0.7);
+}
+
+/* Matted gold frame — cream passe-partout + thin gold line + drop shadow.
+   Image inside uses object-contain so nothing is ever cropped. */
+.gallery-frame {
+  background: #f7f1e6;
+  padding: 12px;
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 1.5px rgba(200, 118, 26, 0.55),
+    0 24px 55px -24px rgba(0, 0, 0, 0.75);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+.gallery-frame:hover {
+  transform: translateY(-5px);
+  box-shadow:
+    0 0 0 1.5px rgba(200, 118, 26, 0.95),
+    0 36px 72px -22px rgba(0, 0, 0, 0.85);
+}
+.gallery-mat {
+  background:
+    repeating-linear-gradient(45deg, #f3ecdf 0 6px, #efe7d7 6px 12px);
+  border-radius: 4px;
+}
+
+/* ===================== ADMIN (dark glass) ===================== */
 .bg-aurora {
   position: relative;
   isolation: isolate;
