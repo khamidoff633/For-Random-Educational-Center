@@ -10,7 +10,6 @@ import Pricing from "./Pricing";
 import Teachers from "./Teachers";
 import Results from "./Results";
 import Reviews from "./Reviews";
-import Gallery from "./Gallery";
 import PartnersStrip from "./PartnersStrip";
 import Branches from "./Branches";
 import AIPlanner from "./AIPlanner";
@@ -90,7 +89,6 @@ export default function PublicSite({
         <Results results={results} t={t} />
         <Reviews reviews={settings.reviews ?? []} t={t} />
         <PartnersStrip logos={settings.partners ?? []} t={t} />
-        <Gallery images={settings.gallery ?? []} t={t} />
         <Branches branches={settings.branches ?? []} t={t} />
         <AIPlanner t={t} />
         <MidCTA t={t} onEnroll={() => openEnroll()} />

@@ -17,11 +17,14 @@ interface NavbarProps {
 export default function Navbar({ settings, lang, setLang, t, onAdminClick, onEnroll }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const hasGallery = (settings.gallery ?? []).length > 0;
+
   const links: { href: string; key: UIKey }[] = [
     { href: "#about", key: "navAbout" },
     { href: "#courses", key: "navCourses" },
     { href: "#teachers", key: "navTeachers" },
     { href: "#results", key: "navResults" },
+    ...(hasGallery ? [{ href: "#/galereya", key: "navGallery" as UIKey }] : []),
     { href: "#faq", key: "navFaq" },
     { href: "#contact", key: "navContact" },
   ];

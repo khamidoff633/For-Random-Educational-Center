@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import PublicSite from "./components/site/PublicSite";
+import GalleryPage from "./components/site/GalleryPage";
 import SiteSkeleton from "./components/site/SiteSkeleton";
 import AdminApp from "./admin/AdminApp";
 import { api } from "./api/client";
@@ -7,10 +8,13 @@ import type { Course, Language, SchoolSettings, StudentResultItem, Teacher } fro
 
 type View = "site" | "admin";
 
+const GALLERY_HASH = "#/galereya";
+
 export default function App() {
   const [view, setView] = useState<View>("site");
   const [lang, setLang] = useState<Language>("uz");
   const [loading, setLoading] = useState(true);
+  const [route, setRoute] = useState<string>(() => window.location.hash);
 
   const [settings, setSettings] = useState<SchoolSettings | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -41,6 +45,23 @@ export default function App() {
     loadPublicData();
   }, [loadPublicData]);
 
+  // Hash-based routing for the standalone gallery page (browser back works,
+  // URL is shareable). Admin stays state-driven.
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash);
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  const goToSite = useCallback(() => {
+    // Strip the hash cleanly without leaving a dangling "#/galereya".
+    history.pushState(null, "", window.location.pathname + window.location.search);
+    setRoute("");
+    window.scrollTo({ top: 0 });
+  }, []);
+
+  const isGallery = route.startsWith(GALLERY_HASH);
+
   if (view === "admin") {
     return (
       <AdminApp
@@ -54,6 +75,10 @@ export default function App() {
 
   if (loading || !settings) {
     return <SiteSkeleton />;
+  }
+
+  if (isGallery) {
+    return <GalleryPage settings={settings} lang={lang} onBack={goToSite} />;
   }
 
   return (

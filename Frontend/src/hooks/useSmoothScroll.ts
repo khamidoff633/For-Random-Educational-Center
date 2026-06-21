@@ -30,6 +30,9 @@ export function useSmoothScroll() {
       if (!anchor) return;
       const href = anchor.getAttribute("href");
       if (!href || href.length < 2) return;
+      // Route hashes (e.g. "#/galereya") are not in-page anchors — let the
+      // browser update the hash so the router can swap pages.
+      if (href.startsWith("#/")) return;
       const target = document.querySelector(href);
       if (target) {
         e.preventDefault();
