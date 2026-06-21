@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
 import PublicSite from "./components/site/PublicSite";
+import SiteSkeleton from "./components/site/SiteSkeleton";
 import AdminApp from "./admin/AdminApp";
 import { api } from "./api/client";
 import type { Course, Language, SchoolSettings, StudentResultItem, Teacher } from "./types";
@@ -53,12 +53,7 @@ export default function App() {
   }
 
   if (loading || !settings) {
-    return (
-      <div className="bg-warm flex min-h-screen flex-col items-center justify-center gap-4 text-charcoal-soft">
-        <Loader2 size={32} className="animate-spin text-caramel" />
-        <span className="text-xs uppercase tracking-widest">Yuklanmoqda...</span>
-      </div>
-    );
+    return <SiteSkeleton />;
   }
 
   return (
