@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import Modal from "../../components/ui/Modal";
 import { Field, TextInput, TextArea, Select } from "../ui/AdminField";
 import MediaUpload from "../ui/MediaUpload";
+import Avatar from "../../components/ui/Avatar";
 import type { ExamType, StudentResultItem } from "../../types";
 
 const EXAM_TYPES: ExamType[] = ["IELTS", "CEFR", "SAT", "Dasturlash"];
@@ -71,10 +72,11 @@ export default function ResultsPanel({
         {results.map((result) => (
           <div key={result.id} className="card-soft overflow-hidden rounded-2xl">
             <div className="flex gap-3 p-4">
-              <img
-                src={result.certificateImage || result.image || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop"}
-                alt=""
-                className="h-16 w-16 shrink-0 rounded-xl object-cover"
+              <Avatar
+                name={result.studentName}
+                src={result.certificateImage || result.image}
+                fontClass="text-lg"
+                className="h-16 w-16 shrink-0 rounded-xl"
               />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-bold text-charcoal">{result.studentName}</p>

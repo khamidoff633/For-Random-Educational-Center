@@ -59,6 +59,12 @@ export const env = {
     model: readString("GEMINI_MODEL", "gemini-2.5-flash"),
   },
 
+  /** Optional Telegram bot for new-lead notifications. */
+  telegram: {
+    botToken: readString("TELEGRAM_BOT_TOKEN"),
+    chatId: readString("TELEGRAM_CHAT_ID"),
+  },
+
   auth: {
     jwtSecret: resolveJwtSecret(),
     jwtTtlSeconds: readNumber("JWT_TTL_SECONDS", 60 * 60 * 8), // 8 hours

@@ -1,6 +1,5 @@
 import SectionHeading from "../ui/SectionHeading";
 import Reveal from "../ui/Reveal";
-import TiltCard from "../effects/TiltCard";
 import { FeatureIcon } from "./featureIcon";
 import type { SchoolSettings } from "../../types";
 import type { UIKey } from "../../i18n";
@@ -22,15 +21,13 @@ export default function Features({
           const tone = i % 2 === 1 ? "bg-jade/12 text-jade-deep" : "bg-caramel/12 text-caramel-deep";
           return (
             <Reveal key={feature.id} delay={i * 0.08}>
-              <TiltCard className="h-full" max={6}>
-                <div className="card-soft group flex h-full flex-col gap-4 rounded-2xl p-6 transition duration-300 hover:-translate-y-1">
-                  <span className={`inline-flex h-14 w-14 items-center justify-center rounded-xl transition group-hover:scale-110 ${tone}`}>
-                    <FeatureIcon name={feature.icon} />
-                  </span>
-                  <h3 className="font-display text-lg font-bold text-charcoal">{feature.title}</h3>
-                  <p className="text-sm leading-relaxed text-charcoal-soft">{feature.desc}</p>
-                </div>
-              </TiltCard>
+              <div className="card-soft group flex h-full flex-col gap-4 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-soft-lg">
+                <span className={`inline-flex h-14 w-14 items-center justify-center rounded-xl transition group-hover:scale-110 ${tone}`}>
+                  <FeatureIcon name={feature.icon} />
+                </span>
+                <h3 className="font-display text-lg font-bold text-charcoal">{feature.title}</h3>
+                <p className="text-sm leading-relaxed text-charcoal-soft">{feature.desc}</p>
+              </div>
             </Reveal>
           );
         })}

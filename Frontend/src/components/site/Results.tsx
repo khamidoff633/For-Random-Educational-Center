@@ -2,11 +2,9 @@ import { useState } from "react";
 import { Award, Eye, BadgeCheck } from "lucide-react";
 import SectionHeading from "../ui/SectionHeading";
 import Modal from "../ui/Modal";
+import Avatar from "../ui/Avatar";
 import type { StudentResultItem } from "../../types";
 import type { UIKey } from "../../i18n";
-
-const FALLBACK =
-  "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400&auto=format&fit=crop";
 
 /** A framed certificate card — espresso frame + gold inner line, portrait. */
 function DiplomaCard({
@@ -18,7 +16,6 @@ function DiplomaCard({
   t: (key: UIKey) => string;
   onOpen: (r: StudentResultItem) => void;
 }) {
-  const photo = result.image || result.certificateImage || FALLBACK;
   const hasCertificate = Boolean(result.certificateImage);
   return (
     <div
@@ -38,14 +35,13 @@ function DiplomaCard({
           </div>
           <div className="mt-2 h-px w-16 bg-caramel/40" />
 
-          {/* Student photo in a gold frame */}
+          {/* Student photo (or initials) in a gold frame */}
           <div className="mt-5 h-24 w-24 overflow-hidden rounded-full border-2 border-caramel/50 ring-4 ring-white">
-            <img
-              src={photo}
-              alt={result.studentName}
-              loading="lazy"
-              onError={(e) => ((e.target as HTMLImageElement).src = FALLBACK)}
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            <Avatar
+              name={result.studentName}
+              src={result.image}
+              fontClass="text-2xl"
+              className="h-full w-full rounded-full transition duration-500 group-hover:scale-105"
             />
           </div>
 

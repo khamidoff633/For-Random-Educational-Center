@@ -5,6 +5,7 @@ import { asyncHandler, HttpError } from "../middleware/errorHandler";
 import { rateLimit } from "../middleware/rateLimit";
 import { createId } from "../utils/id";
 import { assertStudentName, assertValidPhone, str } from "../utils/validation";
+import { notifyNewLead } from "../services/notifyService";
 import type { Lead, LeadStatus } from "../models/types";
 
 const router = Router();
@@ -50,7 +51,10 @@ router.post(
       verified: false,
       verifiedAt: null,
     };
-    res.status(201).json(await getRepository().createLead(lead));
+    const created = await getRepository().createLead(lead);
+    // Fire-and-forget Telegram notification (no-op if not configured).
+    void notifyNewLead(created);
+    res.status(201).json(created);
   })
 );
 

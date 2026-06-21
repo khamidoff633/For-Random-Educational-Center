@@ -31,7 +31,7 @@ export default function About({
         <Reveal>
           <div className="relative">
             <img
-              src={settings.heroBgImage || ABOUT_FALLBACK}
+              src={settings.aboutImage || settings.heroBgImage || ABOUT_FALLBACK}
               alt={settings.name}
               loading="lazy"
               onError={(e) => ((e.target as HTMLImageElement).src = ABOUT_FALLBACK)}

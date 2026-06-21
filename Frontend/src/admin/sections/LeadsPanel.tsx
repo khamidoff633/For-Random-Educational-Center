@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Phone, Trash2, Check, StickyNote, TrendingUp } from "lucide-react";
+import { Phone, Trash2, Check, StickyNote, TrendingUp, Download } from "lucide-react";
 import { api } from "../../api/client";
 import Modal from "../../components/ui/Modal";
 import { Field, TextArea, Select } from "../ui/AdminField";
@@ -79,6 +79,35 @@ export default function LeadsPanel({
     onChanged();
   };
 
+  // Client-side CSV export (no dependency). Escapes quotes + wraps every field.
+  const exportCsv = () => {
+    const rows = shown;
+    if (rows.length === 0) return;
+    const headers = ["Ism", "Telefon", "Kurs", "Status", "Izoh", "Sana"];
+    const esc = (v: string) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = rows.map((l) =>
+      [
+        l.studentName,
+        l.phone,
+        courseName(l.courseId) ?? "",
+        STATUS_META[l.status].label,
+        l.notes ?? "",
+        new Date(l.createdAt).toLocaleString("uz"),
+      ]
+        .map(esc)
+        .join(",")
+    );
+    // BOM so Excel reads UTF-8 (cyrillic / o' etc.) correctly.
+    const csv = "\uFEFF" + [headers.map(esc).join(","), ...lines].join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `arizalar_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div>
       {/* Summary */}
@@ -107,7 +136,7 @@ export default function LeadsPanel({
       </div>
 
       {/* Filters */}
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         {FILTERS.map((f) => (
           <button
             key={f.key}
@@ -119,6 +148,14 @@ export default function LeadsPanel({
             {f.label}
           </button>
         ))}
+        <button
+          onClick={exportCsv}
+          disabled={shown.length === 0}
+          title="Joriy ro'yxatni CSV (Excel) ga yuklab olish"
+          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-charcoal-soft transition hover:text-caramel-deep disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Download size={15} /> CSV eksport
+        </button>
       </div>
 
       {/* Table */}

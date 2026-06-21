@@ -6,14 +6,22 @@ import Stats from "./Stats";
 import About from "./About";
 import Features from "./Features";
 import Courses from "./Courses";
+import Pricing from "./Pricing";
 import Teachers from "./Teachers";
 import Results from "./Results";
 import Reviews from "./Reviews";
+import Gallery from "./Gallery";
+import PartnersStrip from "./PartnersStrip";
+import Branches from "./Branches";
 import AIPlanner from "./AIPlanner";
+import MidCTA from "./MidCTA";
 import FAQ from "./FAQ";
 import Contact from "./Contact";
 import AdmissionForm from "./AdmissionForm";
 import Footer from "./Footer";
+import FloatingContact from "./FloatingContact";
+import ScrollProgress from "./ScrollProgress";
+import BackToTop from "./BackToTop";
 import Marquee from "../effects/Marquee";
 import { useSmoothScroll } from "../../hooks/useSmoothScroll";
 import { createTranslator } from "../../i18n";
@@ -58,6 +66,7 @@ export default function PublicSite({
 
   return (
     <div className="bg-warm min-h-screen">
+      <ScrollProgress />
       <Navbar
         settings={settings}
         lang={lang}
@@ -76,15 +85,23 @@ export default function PublicSite({
         <About settings={settings} lang={lang} t={t} />
         <Features settings={settings} t={t} />
         <Courses courses={courses} teachers={teachers} t={t} onEnroll={openEnroll} />
+        <Pricing plans={settings.pricing ?? []} t={t} onEnroll={() => openEnroll()} />
         <Teachers teachers={teachers} t={t} />
         <Results results={results} t={t} />
-        <Reviews t={t} />
+        <Reviews reviews={settings.reviews ?? []} t={t} />
+        <PartnersStrip logos={settings.partners ?? []} t={t} />
+        <Gallery images={settings.gallery ?? []} t={t} />
+        <Branches branches={settings.branches ?? []} t={t} />
         <AIPlanner t={t} />
+        <MidCTA t={t} onEnroll={() => openEnroll()} />
         <FAQ lang={lang} t={t} />
         <Contact settings={settings} t={t} />
       </main>
 
       <Footer settings={settings} t={t} />
+
+      <FloatingContact settings={settings} />
+      <BackToTop />
 
       <AdmissionForm
         open={enrollOpen}

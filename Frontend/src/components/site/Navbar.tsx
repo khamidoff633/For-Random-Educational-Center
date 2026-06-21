@@ -32,12 +32,18 @@ export default function Navbar({ settings, lang, setLang, t, onAdminClick, onEnr
         <nav className="flex h-[4.5rem] items-center justify-between rounded-2xl px-4 glass-nav sm:px-6">
           {/* Logo */}
           <a href="#top" className="flex items-center gap-2.5">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-caramel to-caramel-deep text-white shadow-soft">
-              <GraduationCap size={20} strokeWidth={2.5} />
-            </span>
-            <span className="font-display text-lg font-extrabold tracking-tight text-charcoal">
-              {settings.logoText || settings.name || "Apex Academy"}
-            </span>
+            {settings.logoImage ? (
+              <img src={settings.logoImage} alt={settings.name} className="h-10 w-auto object-contain" />
+            ) : (
+              <>
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-caramel to-caramel-deep text-white shadow-soft">
+                  <GraduationCap size={20} strokeWidth={2.5} />
+                </span>
+                <span className="font-display text-lg font-extrabold tracking-tight text-charcoal">
+                  {settings.logoText || settings.name || "Apex Academy"}
+                </span>
+              </>
+            )}
           </a>
 
           {/* Desktop links */}

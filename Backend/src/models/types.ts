@@ -12,14 +12,44 @@ export interface FeatureItem {
   icon: string;
 }
 
+export interface Branch {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  mapsUrl: string;
+}
+
+export interface PricingPlan {
+  id: string;
+  name: string;
+  price: string;
+  period: string;
+  features: string[];
+  highlighted?: boolean;
+}
+
+export interface ReviewItem {
+  id: string;
+  name: string;
+  role: string;
+  text: string;
+  rating: number;
+  avatar?: string;
+}
+
 export interface SchoolSettings {
   name: string;
   logoText: string;
+  /** Uploaded logo image (optional; falls back to text + icon). */
+  logoImage?: string;
   heroTitle: string;
   heroSubtitle: string;
   heroBgImage: string;
   heroVideoUrl?: string;
   heroMediaType?: "image" | "video";
+  /** Dedicated "About" section image (admin-editable). */
+  aboutImage?: string;
   phone: string;
   email: string;
   address: string;
@@ -28,8 +58,16 @@ export interface SchoolSettings {
   instagram: string;
   facebook: string;
   youtube: string;
+  /** WhatsApp number (digits) for the floating contact button. */
+  whatsapp?: string;
   aboutText: string;
   features: FeatureItem[];
+  /** Admin-managed collections (stored in settings, no extra tables). */
+  gallery?: string[];
+  partners?: string[];
+  branches?: Branch[];
+  pricing?: PricingPlan[];
+  reviews?: ReviewItem[];
 }
 
 export interface Teacher {

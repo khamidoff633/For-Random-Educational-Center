@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import Modal from "../../components/ui/Modal";
 import { Field, TextInput, TextArea, Select } from "../ui/AdminField";
 import MediaUpload from "../ui/MediaUpload";
+import Avatar from "../../components/ui/Avatar";
 import type { Teacher } from "../../types";
 
 const EMPTY: Partial<Teacher> = {
@@ -84,10 +85,11 @@ export default function TeachersPanel({
         {teachers.map((teacher) => (
           <div key={teacher.id} className="card-soft overflow-hidden rounded-2xl">
             <div className="flex gap-3 p-4">
-              <img
-                src={teacher.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop"}
-                alt=""
-                className="h-16 w-16 shrink-0 rounded-full object-cover"
+              <Avatar
+                name={teacher.name}
+                src={teacher.image}
+                fontClass="text-lg"
+                className="h-16 w-16 shrink-0 rounded-full"
               />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-bold text-charcoal">{teacher.name}</p>

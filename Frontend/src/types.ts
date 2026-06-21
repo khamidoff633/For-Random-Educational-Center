@@ -11,14 +11,42 @@ export interface FeatureItem {
   icon: string;
 }
 
+export interface Branch {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  mapsUrl: string;
+}
+
+export interface PricingPlan {
+  id: string;
+  name: string;
+  price: string;
+  period: string;
+  features: string[];
+  highlighted?: boolean;
+}
+
+export interface ReviewItem {
+  id: string;
+  name: string;
+  role: string;
+  text: string;
+  rating: number;
+  avatar?: string;
+}
+
 export interface SchoolSettings {
   name: string;
   logoText: string;
+  logoImage?: string;
   heroTitle: string;
   heroSubtitle: string;
   heroBgImage: string;
   heroVideoUrl?: string;
   heroMediaType?: "image" | "video";
+  aboutImage?: string;
   phone: string;
   email: string;
   address: string;
@@ -27,8 +55,14 @@ export interface SchoolSettings {
   instagram: string;
   facebook: string;
   youtube: string;
+  whatsapp?: string;
   aboutText: string;
   features: FeatureItem[];
+  gallery?: string[];
+  partners?: string[];
+  branches?: Branch[];
+  pricing?: PricingPlan[];
+  reviews?: ReviewItem[];
 }
 
 export type ExamType = "IELTS" | "CEFR" | "SAT" | "Dasturlash";
