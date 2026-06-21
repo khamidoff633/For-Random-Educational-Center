@@ -183,14 +183,15 @@ body {
   width: 100%;
 }
 
-/* ===================== GALLERY (deep-emerald exhibit) =====================
-   The gallery page inverts the site's palette: jade/espresso become dominant
-   and gold is the rare accent — giving it a distinct "museum" character. */
+/* ===================== GALLERY — "Sunlit meadow" (warm Ghibli) =============
+   Stays in the site palette (cream / gold) and adds Ghibli magic through soft
+   light rather than loud colour: a gentle sunlit sky, drifting clouds and
+   floating sunlight motes. Jade appears only as a faint meadow hint. */
 .bg-gallery {
   position: relative;
   isolation: isolate;
-  background-color: #08332b;
-  color: #f3efe8;
+  background-color: #faf8f5;
+  color: #1a1a1a;
 }
 .bg-gallery::before {
   content: "";
@@ -198,10 +199,10 @@ body {
   inset: 0;
   z-index: -2;
   background:
-    radial-gradient(50rem 40rem at 8% -10%, rgba(15, 110, 92, 0.55), transparent 60%),
-    radial-gradient(42rem 42rem at 100% 8%, rgba(36, 28, 22, 0.7), transparent 55%),
-    radial-gradient(52rem 42rem at 50% 120%, rgba(6, 24, 20, 0.95), transparent 62%),
-    linear-gradient(160deg, #0c4a3e 0%, #08332b 48%, #241c16 100%);
+    radial-gradient(64rem 32rem at 50% -14%, rgba(200, 118, 26, 0.16), transparent 65%),
+    radial-gradient(42rem 26rem at 12% 4%, rgba(224, 177, 90, 0.16), transparent 60%),
+    radial-gradient(46rem 30rem at 92% 6%, rgba(15, 110, 92, 0.07), transparent 60%),
+    linear-gradient(180deg, #fdf6ea 0%, #faf8f5 40%, #f5efe6 100%);
   pointer-events: none;
 }
 .bg-gallery::after {
@@ -210,41 +211,63 @@ body {
   inset: 0;
   z-index: -2;
   pointer-events: none;
-  opacity: 0.4;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  opacity: 0.45;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
 }
 
-/* Dark glass top bar for the gallery page */
-.glass-nav-dark {
-  background: rgba(8, 40, 33, 0.4);
-  backdrop-filter: blur(22px) saturate(160%);
-  -webkit-backdrop-filter: blur(22px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 30px -20px rgba(0, 0, 0, 0.7);
+/* Slow-drifting soft clouds */
+@keyframes gh-drift {
+  0% { transform: translateX(-4%) translateY(0); }
+  50% { transform: translateX(4%) translateY(-6px); }
+  100% { transform: translateX(-4%) translateY(0); }
+}
+.gh-cloud {
+  position: fixed;
+  border-radius: 999px;
+  filter: blur(46px);
+  pointer-events: none;
+  z-index: -1;
+  background: radial-gradient(circle, rgba(255, 252, 245, 0.9), rgba(255, 246, 230, 0.4) 60%, transparent 75%);
+  animation: gh-drift ease-in-out infinite;
 }
 
-/* Matted gold frame — cream passe-partout + thin gold line + drop shadow.
-   Image inside uses object-contain so nothing is ever cropped. */
-.gallery-frame {
-  background: #f7f1e6;
+/* Floating sunlight motes (dust caught in a sunbeam) */
+@keyframes gh-mote {
+  0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  12% { opacity: 0.9; }
+  88% { opacity: 0.7; }
+  100% { transform: translateY(-140px) translateX(24px) scale(0.6); opacity: 0; }
+}
+.gh-mote {
+  position: absolute;
+  bottom: 0;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 236, 194, 0.95), rgba(200, 118, 26, 0.18) 65%, transparent 75%);
+  animation: gh-mote linear infinite;
+  pointer-events: none;
+}
+
+/* Painted cream frame — soft, rounded, hand-made feel. Image uses
+   object-contain so nothing is ever cropped. */
+.ghibli-frame {
+  background: #fffdf8;
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 18px;
   box-shadow:
-    0 0 0 1.5px rgba(200, 118, 26, 0.55),
-    0 24px 55px -24px rgba(0, 0, 0, 0.75);
-  transition: transform 0.4s ease, box-shadow 0.4s ease;
+    0 0 0 1px rgba(200, 118, 26, 0.22),
+    0 18px 45px -22px rgba(28, 26, 23, 0.35);
+  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.45s ease;
 }
-.gallery-frame:hover {
-  transform: translateY(-5px);
+.ghibli-frame:hover {
+  transform: translateY(-6px) rotate(-0.6deg);
   box-shadow:
-    0 0 0 1.5px rgba(200, 118, 26, 0.95),
-    0 36px 72px -22px rgba(0, 0, 0, 0.85);
+    0 0 0 1px rgba(200, 118, 26, 0.5),
+    0 30px 70px -22px rgba(200, 118, 26, 0.4);
 }
-.gallery-mat {
-  background:
-    repeating-linear-gradient(45deg, #f3ecdf 0 6px, #efe7d7 6px 12px);
-  border-radius: 4px;
+.ghibli-mat {
+  background: #f6efe2;
+  border-radius: 12px;
 }
 
 /* ===================== ADMIN (dark glass) ===================== */
