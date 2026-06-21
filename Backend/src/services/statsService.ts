@@ -1,7 +1,7 @@
 import { getRepository } from "../db";
 import type { DashboardStats, Lead, LeadStatus } from "../models/types";
 
-const STATUSES: LeadStatus[] = ["yangi", "suhbatda", "oqiyapti", "rad-etildi"];
+const STATUSES: LeadStatus[] = ["yangi", "boglanildi", "royxatga_otdi"];
 
 /** Computes aggregated dashboard metrics from the current data. */
 export async function computeStats(): Promise<DashboardStats> {
@@ -12,26 +12,30 @@ export async function computeStats(): Promise<DashboardStats> {
     repo.listTeachers(),
   ]);
 
-  const sorted = [...leads].sort(
+  // Archived (verified) leads are excluded from the active pipeline metrics.
+  const active = leads.filter((l) => !l.verified);
+
+  const sorted = [...active].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   const leadsByStatus = STATUSES.reduce(
     (acc, status) => {
-      acc[status] = leads.filter((l) => l.status === status).length;
+      acc[status] = active.filter((l) => l.status === status).length;
       return acc;
     },
     {} as Record<LeadStatus, number>
   );
 
   return {
-    totalLeads: leads.length,
-    activeStudents: leadsByStatus.oqiyapti,
+    totalLeads: active.length,
+    // "Active students" = leads converted to enrolment.
+    activeStudents: leadsByStatus.royxatga_otdi,
     totalCourses: courses.length,
     totalTeachers: teachers.length,
     recentLeads: sorted.slice(0, 5),
     leadsByStatus,
-    leadsTrend: buildTrend(leads, 14),
+    leadsTrend: buildTrend(active, 14),
   };
 }
 

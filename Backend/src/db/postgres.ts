@@ -54,8 +54,8 @@ export class PostgresRepository implements Repository {
       [JSON.stringify(seed.settings)]
     );
     await this.pool.query(
-      `INSERT INTO admin_users (id, email, password_hash, otp_hash, otp_expires_at, otp_attempts)
-       VALUES ('admin', $1, $2, NULL, NULL, 0) ON CONFLICT (id) DO NOTHING`,
+      `INSERT INTO admin_users (id, email, password_hash, totp_secret, totp_enabled)
+       VALUES ('admin', $1, $2, NULL, false) ON CONFLICT (id) DO NOTHING`,
       [seed.admin.email, seed.admin.passwordHash]
     );
     for (const t of seed.teachers) await this.createTeacher(t);
@@ -177,6 +177,10 @@ export class PostgresRepository implements Repository {
     courseId: r.course_id,
     status: r.status,
     notes: r.notes,
+    seen: r.seen,
+    verified: r.verified,
+    verifiedAt:
+      r.verified_at instanceof Date ? r.verified_at.toISOString() : r.verified_at ?? null,
     createdAt: r.created_at instanceof Date ? r.created_at.toISOString() : r.created_at,
   });
 
@@ -187,9 +191,9 @@ export class PostgresRepository implements Repository {
 
   async createLead(l: Lead): Promise<Lead> {
     await this.pool.query(
-      `INSERT INTO leads (id, student_name, phone, course_id, status, notes, created_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-      [l.id, l.studentName, l.phone, l.courseId, l.status, l.notes, l.createdAt]
+      `INSERT INTO leads (id, student_name, phone, course_id, status, notes, seen, verified, verified_at, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+      [l.id, l.studentName, l.phone, l.courseId, l.status, l.notes, l.seen ?? false, l.verified ?? false, l.verifiedAt ?? null, l.createdAt]
     );
     return l;
   }
@@ -199,8 +203,8 @@ export class PostgresRepository implements Repository {
     if (!rows[0]) return null;
     const next = { ...this.mapLead(rows[0]), ...patch, id };
     await this.pool.query(
-      `UPDATE leads SET student_name=$2, phone=$3, course_id=$4, status=$5, notes=$6 WHERE id=$1`,
-      [id, next.studentName, next.phone, next.courseId, next.status, next.notes]
+      `UPDATE leads SET student_name=$2, phone=$3, course_id=$4, status=$5, notes=$6, seen=$7, verified=$8, verified_at=$9 WHERE id=$1`,
+      [id, next.studentName, next.phone, next.courseId, next.status, next.notes, next.seen ?? false, next.verified ?? false, next.verifiedAt ?? null]
     );
     return next;
   }
@@ -258,9 +262,8 @@ export class PostgresRepository implements Repository {
     id: r.id,
     email: r.email,
     passwordHash: r.password_hash,
-    otpHash: r.otp_hash,
-    otpExpiresAt: r.otp_expires_at === null ? null : Number(r.otp_expires_at),
-    otpAttempts: r.otp_attempts,
+    totpSecret: r.totp_secret ?? null,
+    totpEnabled: r.totp_enabled ?? false,
   });
 
   async getAdmin(): Promise<AdminUser> {
@@ -272,8 +275,8 @@ export class PostgresRepository implements Repository {
     const current = await this.getAdmin();
     const next = { ...current, ...patch };
     await this.pool.query(
-      `UPDATE admin_users SET email=$2, password_hash=$3, otp_hash=$4, otp_expires_at=$5, otp_attempts=$6 WHERE id=$1`,
-      [next.id, next.email, next.passwordHash, next.otpHash, next.otpExpiresAt, next.otpAttempts]
+      `UPDATE admin_users SET email=$2, password_hash=$3, totp_secret=$4, totp_enabled=$5 WHERE id=$1`,
+      [next.id, next.email, next.passwordHash, next.totpSecret, next.totpEnabled]
     );
     return next;
   }

@@ -4,6 +4,10 @@
  * Kept in code rather than a separate .sql file so it bundles reliably with
  * esbuild for production and needs no filesystem lookup at runtime. Applied on
  * first boot when DATABASE_URL is set. Safe to run repeatedly (IF NOT EXISTS).
+ *
+ * Order matters: tables are created, then legacy databases are migrated
+ * (ALTER ADD COLUMN), and only then are indexes that depend on the new
+ * columns created.
  */
 export const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS settings (
@@ -47,11 +51,11 @@ CREATE TABLE IF NOT EXISTS leads (
   course_id    TEXT NOT NULL DEFAULT '',
   status       TEXT NOT NULL DEFAULT 'yangi',
   notes        TEXT NOT NULL DEFAULT '',
+  seen         BOOLEAN NOT NULL DEFAULT false,
+  verified     BOOLEAN NOT NULL DEFAULT false,
+  verified_at  TIMESTAMPTZ,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-CREATE INDEX IF NOT EXISTS leads_status_idx ON leads (status);
-CREATE INDEX IF NOT EXISTS leads_created_idx ON leads (created_at DESC);
 
 CREATE TABLE IF NOT EXISTS student_results (
   id                TEXT PRIMARY KEY,
@@ -70,8 +74,32 @@ CREATE TABLE IF NOT EXISTS admin_users (
   id             TEXT PRIMARY KEY DEFAULT 'admin',
   email          TEXT NOT NULL,
   password_hash  TEXT NOT NULL,
-  otp_hash       TEXT,
-  otp_expires_at BIGINT,
-  otp_attempts   INTEGER NOT NULL DEFAULT 0
+  totp_secret    TEXT,
+  totp_enabled   BOOLEAN NOT NULL DEFAULT false
 );
+
+-- ---------------------------------------------------------------------
+-- Migrations (idempotent) — upgrade databases created by older versions.
+-- These run BEFORE the indexes that depend on the new columns.
+-- ---------------------------------------------------------------------
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS seen BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS verified_at TIMESTAMPTZ;
+ALTER TABLE student_results ADD COLUMN IF NOT EXISTS certificate_image TEXT NOT NULL DEFAULT '';
+ALTER TABLE student_results ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';
+
+-- Authenticator (TOTP) 2FA columns for databases created before TOTP.
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS totp_secret TEXT;
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN NOT NULL DEFAULT false;
+
+-- Map legacy CRM statuses to the new simplified pipeline.
+UPDATE leads SET status = 'boglanildi' WHERE status = 'suhbatda';
+UPDATE leads SET status = 'royxatga_otdi' WHERE status = 'oqiyapti';
+UPDATE leads SET status = 'yangi'
+  WHERE status NOT IN ('yangi', 'boglanildi', 'royxatga_otdi');
+
+-- Indexes (created after columns are guaranteed to exist).
+CREATE INDEX IF NOT EXISTS leads_status_idx ON leads (status);
+CREATE INDEX IF NOT EXISTS leads_created_idx ON leads (created_at DESC);
+CREATE INDEX IF NOT EXISTS leads_verified_idx ON leads (verified);
 `;

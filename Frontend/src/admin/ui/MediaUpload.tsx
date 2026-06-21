@@ -5,7 +5,7 @@ import { uploadFile } from "../../api/client";
 interface MediaUploadProps {
   value: string;
   onChange: (url: string) => void;
-  /** "image" or "image/video" — controls the file picker filter. */
+  /** "image" or "media" (image + video). */
   kind?: "image" | "media";
   label?: string;
 }
@@ -35,9 +35,13 @@ export default function MediaUpload({ value, onChange, kind = "image", label }: 
 
   return (
     <div>
-      {label && <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</span>}
+      {label && (
+        <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-charcoal-soft">
+          {label}
+        </span>
+      )}
       <div className="flex items-center gap-3">
-        <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+        <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-xl border border-black/10 bg-cream-soft">
           {value ? (
             isVideo ? (
               <video src={value} className="h-full w-full object-cover" muted />
@@ -45,7 +49,7 @@ export default function MediaUpload({ value, onChange, kind = "image", label }: 
               <img src={value} alt="" className="h-full w-full object-cover" />
             )
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-slate-600">
+            <div className="flex h-full w-full items-center justify-center text-stone-400">
               <UploadCloud size={20} />
             </div>
           )}
@@ -53,7 +57,7 @@ export default function MediaUpload({ value, onChange, kind = "image", label }: 
             <button
               type="button"
               onClick={() => onChange("")}
-              className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white hover:bg-rose-500"
+              className="absolute right-1 top-1 rounded-full bg-black/50 p-1 text-white hover:bg-rose-500"
               aria-label="O'chirish"
             >
               <X size={12} />
@@ -66,7 +70,7 @@ export default function MediaUpload({ value, onChange, kind = "image", label }: 
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={busy}
-            className="btn-ghost inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs disabled:opacity-60"
+            className="btn-outline inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs disabled:opacity-60"
           >
             {busy ? <Loader2 size={14} className="animate-spin" /> : <UploadCloud size={14} />}
             {busy ? "Yuklanmoqda..." : "Fayl yuklash"}
@@ -82,9 +86,9 @@ export default function MediaUpload({ value, onChange, kind = "image", label }: 
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="yoki URL kiriting"
-            className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white outline-none focus:border-neon-cyan"
+            className="mt-2 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-xs text-charcoal outline-none focus:border-caramel placeholder:text-stone-400"
           />
-          {error && <p className="mt-1 text-xs text-rose-400">{error}</p>}
+          {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
         </div>
       </div>
     </div>

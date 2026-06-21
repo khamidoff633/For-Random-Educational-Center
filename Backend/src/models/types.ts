@@ -12,14 +12,44 @@ export interface FeatureItem {
   icon: string;
 }
 
+export interface Branch {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  mapsUrl: string;
+}
+
+export interface PricingPlan {
+  id: string;
+  name: string;
+  price: string;
+  period: string;
+  features: string[];
+  highlighted?: boolean;
+}
+
+export interface ReviewItem {
+  id: string;
+  name: string;
+  role: string;
+  text: string;
+  rating: number;
+  avatar?: string;
+}
+
 export interface SchoolSettings {
   name: string;
   logoText: string;
+  /** Uploaded logo image (optional; falls back to text + icon). */
+  logoImage?: string;
   heroTitle: string;
   heroSubtitle: string;
   heroBgImage: string;
   heroVideoUrl?: string;
   heroMediaType?: "image" | "video";
+  /** Dedicated "About" section image (admin-editable). */
+  aboutImage?: string;
   phone: string;
   email: string;
   address: string;
@@ -28,8 +58,16 @@ export interface SchoolSettings {
   instagram: string;
   facebook: string;
   youtube: string;
+  /** WhatsApp number (digits) for the floating contact button. */
+  whatsapp?: string;
   aboutText: string;
   features: FeatureItem[];
+  /** Admin-managed collections (stored in settings, no extra tables). */
+  gallery?: string[];
+  partners?: string[];
+  branches?: Branch[];
+  pricing?: PricingPlan[];
+  reviews?: ReviewItem[];
 }
 
 export interface Teacher {
@@ -58,7 +96,13 @@ export interface Course {
   capacity: number;
 }
 
-export type LeadStatus = "yangi" | "suhbatda" | "oqiyapti" | "rad-etildi";
+/**
+ * CRM pipeline statuses (simplified, real-world funnel):
+ *  - yangi         : new, not yet contacted
+ *  - boglanildi    : admin has contacted the prospect
+ *  - royxatga_otdi : converted — became a student
+ */
+export type LeadStatus = "yangi" | "boglanildi" | "royxatga_otdi";
 
 export interface Lead {
   id: string;
@@ -68,6 +112,12 @@ export interface Lead {
   status: LeadStatus;
   notes: string;
   createdAt: string;
+  /** False until the admin has opened the leads list (drives the "new" badge). */
+  seen?: boolean;
+  /** True once the admin marks the lead as handled ("Tekshirildi"). */
+  verified?: boolean;
+  /** ISO timestamp when verified; used for the 7-day auto-cleanup countdown. */
+  verifiedAt?: string | null;
 }
 
 export type ExamType = "IELTS" | "CEFR" | "SAT" | "Dasturlash";
@@ -90,20 +140,18 @@ export interface StudentResultItem {
 }
 
 /**
- * Server-only entity. The password is stored only as a salted hash and the
- * 2FA one-time code is stored hashed with an expiry. Neither is ever returned
- * to the client.
+ * Server-only entity. The password is stored only as a salted hash, and the
+ * TOTP secret powers authenticator-app 2FA. Neither is ever returned to the
+ * client (the secret is only exposed once, during first-time setup).
  */
 export interface AdminUser {
   id: string;
   email: string;
   passwordHash: string;
-  /** Hash of the active 2FA one-time code, or null when none is pending. */
-  otpHash: string | null;
-  /** Expiry timestamp (ms since epoch) for the active 2FA code. */
-  otpExpiresAt: number | null;
-  /** Number of consecutive failed 2FA attempts for the active code. */
-  otpAttempts: number;
+  /** Base32 TOTP secret (generated on first login), or null before setup. */
+  totpSecret: string | null;
+  /** True once the admin has confirmed their authenticator app. */
+  totpEnabled: boolean;
 }
 
 /** Full database shape used by the file store and seeded into PostgreSQL. */
