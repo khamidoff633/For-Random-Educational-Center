@@ -1,1 +1,1 @@
-{"version": 2, "builds": [{"src": "Frontend/package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" }}]}
+{"version": 2, "framework": "vite", "public": false, "cleanUrls": true, "builds": [{"src": "Frontend/package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" }}]}
