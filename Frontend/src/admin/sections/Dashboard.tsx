@@ -1,5 +1,6 @@
 import type React from "react";
 import { Users, GraduationCap, BookOpen, UserCheck, TrendingUp } from "lucide-react";
+import { motion } from "motion/react";
 import type { DashboardStats, LeadStatus } from "../../types";
 
 const STATUS_LABELS: Record<LeadStatus, string> = {
@@ -50,18 +51,30 @@ export default function Dashboard({ stats }: { stats: DashboardStats | null }) {
             <h3 className="font-display font-bold text-charcoal">Arizalar dinamikasi (14 kun)</h3>
           </div>
           <div className="flex h-40 items-end gap-1.5">
-            {stats.leadsTrend.map((d) => (
-              <div key={d.date} className="group flex flex-1 flex-col items-center justify-end gap-1">
-                <span className="text-[10px] text-charcoal-soft opacity-0 transition group-hover:opacity-100">
-                  {d.count}
-                </span>
+            {stats.leadsTrend.map((d, i) => {
+              const pct = (d.count / maxTrend) * 100;
+              return (
                 <div
-                  className="w-full rounded-t bg-gradient-to-t from-caramel to-jade transition-all"
-                  style={{ height: `${(d.count / maxTrend) * 100}%`, minHeight: d.count ? 4 : 0 }}
-                />
-                <span className="text-[8px] text-stone-400">{d.date.slice(8)}</span>
-              </div>
-            ))}
+                  key={d.date}
+                  className="group flex h-full flex-1 flex-col items-center justify-end gap-1"
+                >
+                  <span className="text-[10px] font-bold text-charcoal-soft opacity-0 transition group-hover:opacity-100">
+                    {d.count}
+                  </span>
+                  {/* Track keeps a consistent column; bar grows up from the bottom */}
+                  <div className="flex w-full flex-1 items-end">
+                    <motion.div
+                      className="w-full origin-bottom rounded-t bg-gradient-to-t from-caramel to-jade"
+                      style={{ height: `${pct}%`, minHeight: d.count ? 4 : 0 }}
+                      initial={{ scaleY: 0 }}
+                      animate={{ scaleY: 1 }}
+                      transition={{ duration: 0.7, delay: i * 0.04, ease: [0.2, 0.7, 0.2, 1] }}
+                    />
+                  </div>
+                  <span className="text-[8px] text-stone-400">{d.date.slice(8)}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 

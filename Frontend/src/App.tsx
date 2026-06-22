@@ -9,12 +9,35 @@ import type { Course, Language, SchoolSettings, StudentResultItem, Teacher } fro
 type View = "site" | "admin";
 
 const GALLERY_HASH = "#/galereya";
+const LANG_KEY = "apex_lang";
+const VALID_LANGS: Language[] = ["uz", "ru", "en"];
+
+/** Reads the saved UI language, defaulting to Uzbek on first visit. */
+function readSavedLang(): Language {
+  try {
+    const saved = localStorage.getItem(LANG_KEY) as Language | null;
+    if (saved && VALID_LANGS.includes(saved)) return saved;
+  } catch {
+    /* ignore storage errors (e.g. private mode) */
+  }
+  return "uz";
+}
 
 export default function App() {
   const [view, setView] = useState<View>("site");
-  const [lang, setLang] = useState<Language>("uz");
+  const [lang, setLangState] = useState<Language>(readSavedLang);
   const [loading, setLoading] = useState(true);
   const [route, setRoute] = useState<string>(() => window.location.hash);
+
+  // Persist the chosen language so it survives a refresh.
+  const setLang = useCallback((next: Language) => {
+    setLangState(next);
+    try {
+      localStorage.setItem(LANG_KEY, next);
+    } catch {
+      /* ignore storage errors */
+    }
+  }, []);
 
   const [settings, setSettings] = useState<SchoolSettings | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -44,6 +67,11 @@ export default function App() {
   useEffect(() => {
     loadPublicData();
   }, [loadPublicData]);
+
+  // Keep the document language in sync with the chosen UI language.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   // Hash-based routing for the standalone gallery page (browser back works,
   // URL is shareable). Admin stays state-driven.

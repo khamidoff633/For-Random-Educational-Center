@@ -39,6 +39,29 @@ import type {
 
 type SectionId = "dashboard" | "settings" | "courses" | "teachers" | "leads" | "verified" | "results" | "copilot";
 
+const SECTION_KEY = "apex_admin_section";
+const VALID_SECTIONS: SectionId[] = [
+  "dashboard",
+  "settings",
+  "courses",
+  "teachers",
+  "leads",
+  "verified",
+  "results",
+  "copilot",
+];
+
+/** Restores the last open admin section so a refresh keeps the admin in place. */
+function readSavedSection(): SectionId {
+  try {
+    const saved = localStorage.getItem(SECTION_KEY) as SectionId | null;
+    if (saved && VALID_SECTIONS.includes(saved)) return saved;
+  } catch {
+    /* ignore storage errors */
+  }
+  return "dashboard";
+}
+
 const NAV: { id: SectionId; label: string; icon: React.ReactNode }[] = [
   { id: "dashboard", label: "Boshqaruv paneli", icon: <LayoutDashboard size={18} /> },
   { id: "courses", label: "Kurslar", icon: <BookOpen size={18} /> },
@@ -53,9 +76,19 @@ const NAV: { id: SectionId; label: string; icon: React.ReactNode }[] = [
 export default function AdminApp({ onExit }: { onExit: () => void }) {
   const [authed, setAuthed] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [section, setSection] = useState<SectionId>("dashboard");
+  const [section, setSectionState] = useState<SectionId>(readSavedSection);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [pwOpen, setPwOpen] = useState(false);
+
+  // Persist the active section so a refresh keeps the admin where they were.
+  const setSection = useCallback((next: SectionId) => {
+    setSectionState(next);
+    try {
+      localStorage.setItem(SECTION_KEY, next);
+    } catch {
+      /* ignore storage errors */
+    }
+  }, []);
 
   const [settings, setSettings] = useState<SchoolSettings | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
