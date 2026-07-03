@@ -111,7 +111,7 @@ Ruxsat etilgan action turlari:
 - { "type": "ADD_TEACHER", "payload": { "name": "...", "specialty": "...", "bio": "...", "experience": "...", "phone": "...", "gender": "erkak|ayol" } }
 - { "type": "UPDATE_TEACHER", "payload": { "id": "...", ... } }
 - { "type": "DELETE_TEACHER", "payload": { "id": "..." } }
-- { "type": "UPDATE_LEAD", "payload": { "id": "...", "status": "yangi|suhbatda|oqiyapti|rad-etildi", "notes": "..." } }
+- { "type": "UPDATE_LEAD", "payload": { "id": "...", "status": "yangi|boglanildi|royxatga_otdi", "notes": "..." } }
 - { "type": "DELETE_LEAD", "payload": { "id": "..." } }`;
 }
 

@@ -7,24 +7,27 @@ interface SectionHeadingProps {
   align?: "center" | "left";
 }
 
-/** Consistent eyebrow + gradient title + description block for sections. */
+/** Eyebrow + bold display title + description block (warm premium light). */
 export default function SectionHeading({
   eyebrow,
   title,
   description,
   align = "center",
 }: SectionHeadingProps) {
-  const alignment = align === "center" ? "items-center text-center mx-auto" : "items-start text-left";
+  const alignment =
+    align === "center" ? "items-center text-center mx-auto" : "items-start text-left";
   return (
-    <Reveal className={`flex flex-col ${alignment} max-w-2xl gap-3`}>
-      <span className="inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-neon-cyan">
-        <span className="h-1.5 w-1.5 rounded-full bg-neon-cyan animate-pulse" />
+    <Reveal className={`flex flex-col ${alignment} max-w-2xl gap-4`}>
+      <span className="inline-flex items-center gap-2 rounded-full border border-caramel/20 bg-caramel/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-caramel-deep">
+        <span className="h-1.5 w-1.5 rounded-full bg-caramel" />
         {eyebrow}
       </span>
-      <h2 className="text-3xl sm:text-4xl md:text-5xl font-black leading-tight">
-        <span className="text-gradient">{title}</span>
+      <h2 className="font-display text-3xl font-extrabold leading-[1.1] text-charcoal sm:text-4xl md:text-5xl">
+        {title}
       </h2>
-      {description && <p className="text-sm sm:text-base text-slate-400 leading-relaxed">{description}</p>}
+      {description && (
+        <p className="text-base leading-relaxed text-charcoal-soft">{description}</p>
+      )}
     </Reveal>
   );
 }

@@ -12,9 +12,13 @@ import { env } from "./config/env";
 import { createApp } from "./app";
 import { initRepository } from "./db";
 import { errorHandler } from "./middleware/errorHandler";
+import { startCleanupScheduler } from "./services/cleanupService";
 
 async function startServer(): Promise<void> {
   await initRepository();
+
+  // Periodically purge archived leads past their 7-day retention window.
+  startCleanupScheduler();
 
   const app = createApp();
 

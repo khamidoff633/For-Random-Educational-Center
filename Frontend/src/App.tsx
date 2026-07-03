@@ -1,16 +1,43 @@
 import { useCallback, useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
 import PublicSite from "./components/site/PublicSite";
+import GalleryPage from "./components/site/GalleryPage";
+import SiteSkeleton from "./components/site/SiteSkeleton";
 import AdminApp from "./admin/AdminApp";
 import { api } from "./api/client";
 import type { Course, Language, SchoolSettings, StudentResultItem, Teacher } from "./types";
 
 type View = "site" | "admin";
 
+const GALLERY_HASH = "#/galereya";
+const LANG_KEY = "apex_lang";
+const VALID_LANGS: Language[] = ["uz", "ru", "en"];
+
+/** Reads the saved UI language, defaulting to Uzbek on first visit. */
+function readSavedLang(): Language {
+  try {
+    const saved = localStorage.getItem(LANG_KEY) as Language | null;
+    if (saved && VALID_LANGS.includes(saved)) return saved;
+  } catch {
+    /* ignore storage errors (e.g. private mode) */
+  }
+  return "uz";
+}
+
 export default function App() {
   const [view, setView] = useState<View>("site");
-  const [lang, setLang] = useState<Language>("uz");
+  const [lang, setLangState] = useState<Language>(readSavedLang);
   const [loading, setLoading] = useState(true);
+  const [route, setRoute] = useState<string>(() => window.location.hash);
+
+  // Persist the chosen language so it survives a refresh.
+  const setLang = useCallback((next: Language) => {
+    setLangState(next);
+    try {
+      localStorage.setItem(LANG_KEY, next);
+    } catch {
+      /* ignore storage errors */
+    }
+  }, []);
 
   const [settings, setSettings] = useState<SchoolSettings | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -41,6 +68,28 @@ export default function App() {
     loadPublicData();
   }, [loadPublicData]);
 
+  // Keep the document language in sync with the chosen UI language.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+
+  // Hash-based routing for the standalone gallery page (browser back works,
+  // URL is shareable). Admin stays state-driven.
+  useEffect(() => {
+    const onHash = () => setRoute(window.location.hash);
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  const goToSite = useCallback(() => {
+    // Strip the hash cleanly without leaving a dangling "#/galereya".
+    history.pushState(null, "", window.location.pathname + window.location.search);
+    setRoute("");
+    window.scrollTo({ top: 0 });
+  }, []);
+
+  const isGallery = route.startsWith(GALLERY_HASH);
+
   if (view === "admin") {
     return (
       <AdminApp
@@ -53,12 +102,11 @@ export default function App() {
   }
 
   if (loading || !settings) {
-    return (
-      <div className="bg-aurora flex min-h-screen flex-col items-center justify-center gap-4 text-slate-400">
-        <Loader2 size={32} className="animate-spin text-neon-cyan" />
-        <span className="text-xs uppercase tracking-widest">Yuklanmoqda...</span>
-      </div>
-    );
+    return <SiteSkeleton />;
+  }
+
+  if (isGallery) {
+    return <GalleryPage settings={settings} lang={lang} onBack={goToSite} />;
   }
 
   return (
