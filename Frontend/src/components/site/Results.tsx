@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Award, Eye, BadgeCheck } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Award, Eye, BadgeCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import SectionHeading from "../ui/SectionHeading";
 import Modal from "../ui/Modal";
 import Avatar from "../ui/Avatar";
@@ -77,12 +77,73 @@ export default function Results({
   t: (key: UIKey) => string;
 }) {
   const [selected, setSelected] = useState<StudentResultItem | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !results.length) return;
+
+    // Set initial scroll to the middle set of cards
+    const setWidth = el.scrollWidth / 3;
+    el.scrollLeft = setWidth;
+
+    let frameId: number;
+    const speed = 0.65; // speed of auto scroll
+
+    const step = () => {
+      if (!isPaused) {
+        el.scrollLeft += speed;
+        // Wrap around right
+        const setW = el.scrollWidth / 3;
+        if (el.scrollLeft >= setW * 2) {
+          el.scrollLeft -= setW;
+        }
+      }
+      frameId = requestAnimationFrame(step);
+    };
+
+    frameId = requestAnimationFrame(step);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
+  }, [results, isPaused]);
 
   if (!results.length) return null;
 
-  const cards = results.map((result, i) => (
-    <DiplomaCard key={`${result.id}-${i}`} result={result} t={t} onOpen={setSelected} />
-  ));
+  const duplicatedCards = [
+    ...results.map((result, i) => (
+      <DiplomaCard key={`${result.id}-set1-${i}`} result={result} t={t} onOpen={setSelected} />
+    )),
+    ...results.map((result, i) => (
+      <DiplomaCard key={`${result.id}-set2-${i}`} result={result} t={t} onOpen={setSelected} />
+    )),
+    ...results.map((result, i) => (
+      <DiplomaCard key={`${result.id}-set3-${i}`} result={result} t={t} onOpen={setSelected} />
+    )),
+  ];
+
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const setWidth = el.scrollWidth / 3;
+    if (el.scrollLeft >= setWidth * 2) {
+      el.scrollLeft -= setWidth;
+    } else if (el.scrollLeft <= setWidth - 100) {
+      el.scrollLeft += setWidth;
+    }
+  };
+
+  const scroll = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const cardWidth = 256 + 24; // w-64 is 256px, gap-6 is 24px
+    el.scrollBy({
+      left: direction === "left" ? -cardWidth : cardWidth,
+      behavior: "smooth",
+    });
+  };
 
   return (
     <section id="results" className="py-24">
@@ -90,17 +151,43 @@ export default function Results({
         <SectionHeading eyebrow={t("resultsBadge")} title={t("resultsTitle")} description={t("resultsDesc")} />
       </div>
 
-      {/* Auto-scrolling diploma marquee (pauses on hover) */}
-      <div className="marquee-paused relative mt-14 overflow-hidden py-6">
-        <div className="flex w-max animate-marquee">
-          <div className="flex shrink-0 gap-6 px-3">{cards}</div>
-          <div className="flex shrink-0 gap-6 px-3" aria-hidden>
-            {cards}
+      {/* Auto-scrolling diploma marquee with manual navigation */}
+      <div className="relative mt-14 group">
+        {/* Navigation Buttons */}
+        <button
+          onClick={() => scroll("left")}
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-caramel/20 bg-white/85 text-caramel-deep shadow-md backdrop-blur-sm transition duration-300 hover:bg-caramel hover:text-white hover:shadow-lg focus:outline-none opacity-100 md:opacity-0 md:group-hover:opacity-100 sm:left-6"
+          aria-label="Oldingi"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <button
+          onClick={() => scroll("right")}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-caramel/20 bg-white/85 text-caramel-deep shadow-md backdrop-blur-sm transition duration-300 hover:bg-caramel hover:text-white hover:shadow-lg focus:outline-none opacity-100 md:opacity-0 md:group-hover:opacity-100 sm:right-6"
+          aria-label="Keyingi"
+        >
+          <ChevronRight size={20} />
+        </button>
+
+        {/* Scroll Container */}
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={() => setIsPaused(true)}
+          onTouchEnd={() => setIsPaused(false)}
+          className="flex overflow-x-auto scroll-smooth py-6 px-4 [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          <div className="flex shrink-0 gap-6">
+            {duplicatedCards}
           </div>
         </div>
+
         {/* Edge fades */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-cream to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-cream to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-cream to-transparent z-10" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-cream to-transparent z-10" />
       </div>
 
       <Modal open={!!selected} onClose={() => setSelected(null)} maxWidth="max-w-2xl" tone="light">

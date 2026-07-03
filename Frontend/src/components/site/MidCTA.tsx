@@ -6,7 +6,7 @@ export default function MidCTA({ t, onEnroll }: { t: (key: UIKey) => string; onE
   return (
     <section className="mx-auto w-[92%] max-w-7xl py-12">
       <Reveal>
-        <div className="section-glow relative overflow-hidden rounded-3xl bg-espresso px-6 py-12 text-center shadow-soft-lg sm:px-12 sm:py-16">
+        <div className="relative overflow-hidden rounded-3xl bg-espresso px-6 py-12 text-center shadow-soft-lg sm:px-12 sm:py-16">
           <div
             className="pointer-events-none absolute inset-0 opacity-30"
             style={{
