@@ -17,7 +17,21 @@ export default function Features({
   const mobileScrollRef = useRef<HTMLDivElement | null>(null);
   const isMobilePausedRef = useRef(false);
 
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
   const featuresList = settings.features?.slice(0, 4) || [];
+
+  const handleScroll = () => {
+    const el = mobileScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 5);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 5);
+  };
+
+  useEffect(() => {
+    handleScroll();
+  }, [featuresList]);
 
   useEffect(() => {
     if (featuresList.length <= 1) return;
@@ -61,14 +75,20 @@ export default function Features({
         {/* Navigation Buttons */}
         <button
           onClick={() => scrollMobile("left")}
-          className="absolute -left-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none"
+          disabled={!canScrollLeft}
+          className={`absolute -left-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none ${
+            !canScrollLeft ? "opacity-30 pointer-events-none" : "opacity-100 hover:scale-105"
+          }`}
           aria-label="Oldingi"
         >
           <ChevronLeft size={16} />
         </button>
         <button
           onClick={() => scrollMobile("right")}
-          className="absolute -right-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none"
+          disabled={!canScrollRight}
+          className={`absolute -right-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none ${
+            !canScrollRight ? "opacity-30 pointer-events-none" : "opacity-100 hover:scale-105"
+          }`}
           aria-label="Keyingi"
         >
           <ChevronRight size={16} />
@@ -77,6 +97,7 @@ export default function Features({
         {/* Swipe container */}
         <div
           ref={mobileScrollRef}
+          onScroll={handleScroll}
           className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth gap-4 pb-6 px-1 [&::-webkit-scrollbar]:hidden"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           onTouchStart={() => { isMobilePausedRef.current = true; }}
