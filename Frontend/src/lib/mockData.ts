@@ -12,7 +12,7 @@ export const DEFAULT_SETTINGS: SchoolSettings = {
   email: "info@apexacademy.uz",
   address: "Toshkent shahri, Chilonzor tumani, 9-kvartal, 14-uy",
   mapsUrl: "https://maps.google.com",
-  telegram: "https://t.me/apex_academy",
+  telegram: "https://t.me/bakhridd1n_dev",
   instagram: "https://instagram.com/apex_academy",
   facebook: "https://facebook.com/apex_academy",
   youtube: "https://youtube.com",
@@ -45,7 +45,7 @@ export const DEFAULT_SETTINGS: SchoolSettings = {
   ],
   logoImage: "",
   aboutImage: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop",
-  whatsapp: "998901234567",
+  whatsapp: "",
   gallery: [],
   partners: [],
   branches: [
