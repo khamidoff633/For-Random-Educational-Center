@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import PublicSite from "./components/site/PublicSite";
 import GalleryPage from "./components/site/GalleryPage";
+import PlacementTestPage from "./components/site/PlacementTestPage";
 import SiteSkeleton from "./components/site/SiteSkeleton";
 import AdminApp from "./admin/AdminApp";
 import { api } from "./api/client";
 import type { Course, Language, SchoolSettings, StudentResultItem, Teacher } from "./types";
+import { DEFAULT_SETTINGS, DEFAULT_COURSES, DEFAULT_TEACHERS, DEFAULT_RESULTS } from "./lib/mockData";
 
 type View = "site" | "admin";
 
 const GALLERY_HASH = "#/galereya";
+const LEVEL_TEST_HASH = "#/level-test";
 const LANG_KEY = "apex_lang";
 const VALID_LANGS: Language[] = ["uz", "ru", "en"];
 
@@ -59,6 +62,11 @@ export default function App() {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("Ma'lumotlarni yuklashda xatolik:", err);
+      // Fallback to static mock data to render the landing page gracefully without a backend!
+      setSettings(DEFAULT_SETTINGS);
+      setCourses(DEFAULT_COURSES);
+      setTeachers(DEFAULT_TEACHERS);
+      setResults(DEFAULT_RESULTS);
     } finally {
       setLoading(false);
     }
@@ -89,12 +97,16 @@ export default function App() {
   }, []);
 
   const isGallery = route.startsWith(GALLERY_HASH);
+  const isLevelTest = route.startsWith(LEVEL_TEST_HASH);
+  const isAdmin = route.startsWith("#/admin");
 
-  if (view === "admin") {
+  if (isAdmin) {
     return (
       <AdminApp
         onExit={() => {
-          setView("site");
+          // Clean hash URL when exiting admin
+          history.pushState(null, "", window.location.pathname + window.location.search);
+          setRoute("");
           loadPublicData();
         }}
       />
@@ -109,6 +121,17 @@ export default function App() {
     return <GalleryPage settings={settings} lang={lang} onBack={goToSite} />;
   }
 
+  if (isLevelTest) {
+    return (
+      <PlacementTestPage
+        settings={settings}
+        courses={courses}
+        lang={lang}
+        onBack={goToSite}
+      />
+    );
+  }
+
   return (
     <PublicSite
       settings={settings}
@@ -117,7 +140,6 @@ export default function App() {
       results={results}
       lang={lang}
       setLang={setLang}
-      onAdminClick={() => setView("admin")}
     />
   );
 }

@@ -33,7 +33,6 @@ interface PublicSiteProps {
   results: StudentResultItem[];
   lang: Language;
   setLang: (lang: Language) => void;
-  onAdminClick: () => void;
 }
 
 export default function PublicSite({
@@ -43,7 +42,6 @@ export default function PublicSite({
   results,
   lang,
   setLang,
-  onAdminClick,
 }: PublicSiteProps) {
   const t = createTranslator(lang);
   useSmoothScroll();
@@ -71,7 +69,6 @@ export default function PublicSite({
         lang={lang}
         setLang={setLang}
         t={t}
-        onAdminClick={onAdminClick}
         onEnroll={() => openEnroll()}
       />
 

@@ -67,68 +67,70 @@ export default function Hero({ settings, t, onEnroll }: HeroProps) {
       </div>
 
       {/* Content sits in the lower area, over the cream fade (readable) */}
-      <div className="relative z-10 mx-auto w-[92%] max-w-4xl pb-20 pt-44 text-center">
-        <motion.span
-          {...fadeUp}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 rounded-full border border-caramel/25 bg-white/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-caramel-deep backdrop-blur"
-        >
-          <span className="h-2 w-2 rounded-full bg-caramel" />
-          {t("admissionsOpen")}
-        </motion.span>
-
-        <motion.h1
-          {...fadeUp}
-          transition={{ duration: 0.6, delay: 0.08 }}
-          className="font-display mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tight text-charcoal sm:text-5xl md:text-6xl lg:text-7xl"
-        >
-          {settings.heroTitle}
-        </motion.h1>
-
-        <motion.p
-          {...fadeUp}
-          transition={{ duration: 0.6, delay: 0.16 }}
-          className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-charcoal-soft sm:text-lg"
-        >
-          {settings.heroSubtitle}
-        </motion.p>
-
-        <motion.div
-          {...fadeUp}
-          transition={{ duration: 0.6, delay: 0.24 }}
-          className="mt-8 flex flex-wrap items-center justify-center gap-4"
-        >
-          <button
-            onClick={onEnroll}
-            className="btn-primary inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm"
+      <div className="relative z-10 mx-auto w-[92%] max-w-4xl pb-16 pt-32 sm:pb-20 sm:pt-44 text-center">
+        <div className="bg-white/80 backdrop-blur-md border border-white/30 rounded-3xl px-5 py-8 sm:bg-transparent sm:backdrop-blur-none sm:border-none sm:shadow-none sm:p-0 shadow-soft-xl">
+          <motion.span
+            {...fadeUp}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 rounded-full border border-caramel/25 bg-white/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-caramel-deep backdrop-blur"
           >
-            {t("heroCtaPrimary")}
-            <ArrowRight size={17} />
-          </button>
-          <a
-            href="#courses"
-            className="btn-outline inline-flex items-center gap-2 rounded-full bg-white/70 px-7 py-3.5 text-sm backdrop-blur"
-          >
-            <PlayCircle size={17} />
-            {t("heroCtaSecondary")}
-          </a>
-        </motion.div>
+            <span className="h-2 w-2 rounded-full bg-caramel" />
+            {t("admissionsOpen")}
+          </motion.span>
 
-        <motion.div
-          {...fadeUp}
-          transition={{ duration: 0.6, delay: 0.32 }}
-          className="mt-9 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm font-medium text-charcoal-soft"
-        >
-          <span className="flex items-center gap-2">
-            <Users size={16} className="text-caramel" /> 5000+ {t("statStudents")}
-          </span>
-          <span className="flex items-center gap-2">
-            <Star size={16} className="text-jade" /> 4.9 / 5.0
-          </span>
-          <span className="flex items-center gap-2">
-            <Award size={16} className="text-caramel" /> IELTS · CEFR · SAT
-          </span>
-        </motion.div>
+          <motion.h1
+            {...fadeUp}
+            transition={{ duration: 0.6, delay: 0.08 }}
+            className="font-display mx-auto mt-6 max-w-3xl text-3xl font-extrabold leading-[1.1] tracking-tight text-charcoal sm:text-5xl md:text-6xl lg:text-7xl"
+          >
+            {settings.heroTitle}
+          </motion.h1>
+
+          <motion.p
+            {...fadeUp}
+            transition={{ duration: 0.6, delay: 0.16 }}
+            className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-charcoal-soft sm:text-lg"
+          >
+            {settings.heroSubtitle}
+          </motion.p>
+
+          <motion.div
+            {...fadeUp}
+            transition={{ duration: 0.6, delay: 0.24 }}
+            className="mt-6 flex flex-wrap items-center justify-center gap-3"
+          >
+            <button
+              onClick={onEnroll}
+              className="btn-primary inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm"
+            >
+              {t("heroCtaPrimary")}
+              <ArrowRight size={17} />
+            </button>
+            <a
+              href="#courses"
+              className="btn-outline inline-flex items-center gap-2 rounded-full bg-white/70 px-6 py-3 text-sm backdrop-blur"
+            >
+              <PlayCircle size={17} />
+              {t("heroCtaSecondary")}
+            </a>
+          </motion.div>
+
+          <motion.div
+            {...fadeUp}
+            transition={{ duration: 0.6, delay: 0.32 }}
+            className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs sm:text-sm font-medium text-charcoal-soft"
+          >
+            <span className="flex items-center gap-2">
+              <Users size={16} className="text-caramel" /> 5000+ {t("statStudents")}
+            </span>
+            <span className="flex items-center gap-2">
+              <Star size={16} className="text-jade" /> 4.9 / 5.0
+            </span>
+            <span className="flex items-center gap-2">
+              <Award size={16} className="text-caramel" /> IELTS · CEFR · SAT
+            </span>
+          </motion.div>
+        </div>
       </div>
     </section>
   );

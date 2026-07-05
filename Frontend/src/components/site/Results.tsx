@@ -78,7 +78,7 @@ export default function Results({
 }) {
   const [selected, setSelected] = useState<StudentResultItem | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const [isPaused, setIsPaused] = useState(false);
+  const isPausedRef = useRef(false);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -92,7 +92,7 @@ export default function Results({
     const speed = 0.65; // speed of auto scroll
 
     const step = () => {
-      if (!isPaused) {
+      if (!isPausedRef.current) {
         el.scrollLeft += speed;
         // Wrap around right
         const setW = el.scrollWidth / 3;
@@ -108,7 +108,7 @@ export default function Results({
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [results, isPaused]);
+  }, [results]);
 
   if (!results.length) return null;
 
@@ -138,11 +138,17 @@ export default function Results({
   const scroll = (direction: "left" | "right") => {
     const el = scrollRef.current;
     if (!el) return;
+    // Avtomatik aylanishni vaqtincha to'xtatamiz
+    isPausedRef.current = true;
     const cardWidth = 256 + 24; // w-64 is 256px, gap-6 is 24px
     el.scrollBy({
       left: direction === "left" ? -cardWidth : cardWidth,
       behavior: "smooth",
     });
+    // 700ms dan keyin avtomatik aylanish davom etadi
+    setTimeout(() => {
+      isPausedRef.current = false;
+    }, 700);
   };
 
   return (
@@ -156,14 +162,14 @@ export default function Results({
         {/* Navigation Buttons */}
         <button
           onClick={() => scroll("left")}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-caramel/20 bg-white/85 text-caramel-deep shadow-md backdrop-blur-sm transition duration-300 hover:bg-caramel hover:text-white hover:shadow-lg focus:outline-none opacity-100 md:opacity-0 md:group-hover:opacity-100 sm:left-6"
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex h-11 w-11 items-center justify-center rounded-full border border-caramel/20 bg-white/85 text-caramel-deep shadow-md backdrop-blur-sm transition duration-300 hover:bg-caramel hover:text-white hover:shadow-lg focus:outline-none opacity-100 md:opacity-0 md:group-hover:opacity-100 sm:left-6"
           aria-label="Oldingi"
         >
           <ChevronLeft size={20} />
         </button>
         <button
           onClick={() => scroll("right")}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 items-center justify-center rounded-full border border-caramel/20 bg-white/85 text-caramel-deep shadow-md backdrop-blur-sm transition duration-300 hover:bg-caramel hover:text-white hover:shadow-lg focus:outline-none opacity-100 md:opacity-0 md:group-hover:opacity-100 sm:right-6"
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex h-11 w-11 items-center justify-center rounded-full border border-caramel/20 bg-white/85 text-caramel-deep shadow-md backdrop-blur-sm transition duration-300 hover:bg-caramel hover:text-white hover:shadow-lg focus:outline-none opacity-100 md:opacity-0 md:group-hover:opacity-100 sm:right-6"
           aria-label="Keyingi"
         >
           <ChevronRight size={20} />
@@ -173,10 +179,10 @@ export default function Results({
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onTouchStart={() => setIsPaused(true)}
-          onTouchEnd={() => setIsPaused(false)}
+          onMouseEnter={() => { isPausedRef.current = true; }}
+          onMouseLeave={() => { isPausedRef.current = false; }}
+          onTouchStart={() => { isPausedRef.current = true; }}
+          onTouchEnd={() => { isPausedRef.current = false; }}
           className="flex overflow-x-auto scroll-smooth py-6 px-4 [&::-webkit-scrollbar]:hidden"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >

@@ -12,3 +12,4 @@ coverage/
 # Runtime data & uploaded media (not source-controlled)
 data/db.json
 uploads/
+.vercel

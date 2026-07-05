@@ -176,7 +176,62 @@ export async function runCopilot(message: string): Promise<CopilotResult> {
     repo.listLeads(),
   ]);
 
-  const snapshot = JSON.stringify({ settings, courses, teachers, leads }, null, 2);
+  // Optimize snapshot payload to reduce token count (remove images and heavy data strings)
+  const cleanSettings = {
+    name: settings.name,
+    logoText: settings.logoText,
+    heroTitle: settings.heroTitle,
+    heroSubtitle: settings.heroSubtitle,
+    phone: settings.phone,
+    email: settings.email,
+    address: settings.address,
+    aboutText: settings.aboutText,
+  };
+
+  const cleanCourses = courses.map((c) => ({
+    id: c.id,
+    name: c.name,
+    category: c.category,
+    description: c.description,
+    duration: c.duration,
+    price: c.price,
+    teacherId: c.teacherId,
+    days: c.days,
+    time: c.time,
+    capacity: c.capacity,
+  }));
+
+  const cleanTeachers = teachers.map((t) => ({
+    id: t.id,
+    name: t.name,
+    specialty: t.specialty,
+    experience: t.experience,
+    phone: t.phone,
+    gender: t.gender,
+    bio: t.bio,
+  }));
+
+  const cleanLeads = leads.map((l) => ({
+    id: l.id,
+    studentName: l.studentName,
+    phone: l.phone,
+    courseId: l.courseId,
+    status: l.status,
+    notes: l.notes,
+    createdAt: l.createdAt,
+  }));
+
+  const snapshot = JSON.stringify(
+    {
+      settings: cleanSettings,
+      courses: cleanCourses,
+      teachers: cleanTeachers,
+      leads: cleanLeads,
+    },
+    null,
+    2
+  );
+
   const prompt = `Joriy ma'lumotlar:\n${snapshot}\n\nFoydalanuvchi buyrug'i / savoli: "${message}"\n\nFaqat JSON qaytaring.`;
 
   const raw = await generate(prompt, buildCopilotSystemInstruction(), true);

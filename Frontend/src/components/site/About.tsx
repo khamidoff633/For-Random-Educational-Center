@@ -1,4 +1,5 @@
-import { motion } from "motion/react";
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "motion/react";
 import { Check } from "lucide-react";
 import Reveal from "../ui/Reveal";
 import type { SchoolSettings } from "../../types";
@@ -23,21 +24,32 @@ export default function About({
   t: (key: UIKey) => string;
 }) {
   const highlights = HIGHLIGHTS_BY_LANG[lang] ?? HIGHLIGHTS_BY_LANG.en;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], [-40, 40]);
+  const scale = useTransform(scrollYProgress, [0, 1], [0.98, 1.06]);
 
   return (
-    <section id="about" className="mx-auto w-[92%] max-w-7xl py-24">
+    <section ref={containerRef} id="about" className="mx-auto w-[92%] max-w-7xl py-24">
       <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
         {/* Image collage */}
         <Reveal>
           <div className="relative">
-            <img
-              src={settings.aboutImage || settings.heroBgImage || ABOUT_FALLBACK}
-              alt={settings.name}
-              loading="lazy"
-              onError={(e) => ((e.target as HTMLImageElement).src = ABOUT_FALLBACK)}
-              className="h-[26rem] w-full rounded-[2rem] object-cover shadow-soft-lg"
-            />
-            <div className="card-soft animate-breathe absolute -right-3 -top-5 rounded-2xl px-5 py-3 sm:-right-6">
+            <div className="overflow-hidden rounded-[2rem] shadow-soft-lg animate-float-slow">
+              <motion.img
+                src={settings.aboutImage || settings.heroBgImage || ABOUT_FALLBACK}
+                alt={settings.name}
+                loading="lazy"
+                onError={(e) => ((e.target as HTMLImageElement).src = ABOUT_FALLBACK)}
+                style={{ y, scale }}
+                className="h-[26rem] w-full object-cover"
+              />
+            </div>
+            <div className="card-soft animate-float absolute -right-3 -top-5 rounded-2xl px-5 py-3 sm:-right-6 z-10">
               <p className="font-display text-2xl font-extrabold text-caramel-deep">15+</p>
               <p className="text-xs text-charcoal-soft">{t("statYears")}</p>
             </div>

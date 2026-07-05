@@ -99,11 +99,20 @@ body {
 
 /* True glass navbar — ~99% transparent, frameless (frosted by blur only) */
 .glass-nav {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(22px) saturate(165%);
-  -webkit-backdrop-filter: blur(22px) saturate(165%);
-  border: 1px solid transparent;
-  box-shadow: 0 8px 26px -20px rgba(28, 26, 23, 0.14);
+  background: rgba(255, 255, 255, 0.02); /* 100% rangsiz shaffoflik */
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: none; /* Ramka (hoshiya) olib tashlanadi */
+  box-shadow: none;
+  transition: all 0.3s ease;
+}
+.glass-nav-scrolled {
+  background: rgba(255, 255, 255, 0.86); /* Frosted glass white when scrolled */
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.45); /* Soft white border */
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
 }
 
 /* Soft floating card */
@@ -128,13 +137,38 @@ body {
   color: transparent;
 }
 
-/* Primary (caramel) button */
+/* Primary (caramel) button with shimmering sheen sweep */
 .btn-primary {
   background: linear-gradient(120deg, #c8761a, #a85d12);
   color: #fff;
   font-weight: 700;
   box-shadow: 0 12px 30px -8px rgba(200, 118, 26, 0.5);
   transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    transparent
+  );
+  transform: translateX(-100%) skewX(-15deg);
+  animation: shimmer-sweep 5s infinite ease-in-out;
+  pointer-events: none;
+}
+@keyframes shimmer-sweep {
+  0% { transform: translateX(-100%) skewX(-15deg); }
+  15% { transform: translateX(200%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
 }
 .btn-primary:hover {
   transform: translateY(-2px);
@@ -358,6 +392,12 @@ body {
 }
 .animate-float { animation: float 6s ease-in-out infinite; }
 
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float-slow { animation: float-slow 8s ease-in-out infinite; }
+
 /* Gentle "breathing" scale, like calm lungs expanding/contracting. */
 @keyframes breathe {
   0%, 100% { transform: scale(1); }
@@ -390,6 +430,9 @@ body {
     scroll-behavior: auto !important;
   }
 }
+section[id] {
+  scroll-margin-top: 112px;
+}
 html { scroll-behavior: smooth; }
 
 /* Lenis smooth-scroll support */
@@ -406,3 +449,24 @@ html.lenis body { height: auto; }
 .markdown p { color: #57534e; font-size: .85rem; line-height: 1.6; margin: .3rem 0; }
 .markdown li { color: #44403c; font-size: .85rem; margin: .2rem 0 .2rem 1.1rem; list-style: disc; }
 .markdown strong { color: #1a1a1a; font-weight: 700; }
+
+/* ===================== Micro-Animations (Premium Quiz Feedback) ===================== */
+@keyframes ripple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 16px rgba(16, 185, 129, 0);
+  }
+}
+@keyframes gentle-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+.animate-ripple {
+  animation: ripple 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-gentle-shake {
+  animation: gentle-shake 0.3s ease-in-out;
+}

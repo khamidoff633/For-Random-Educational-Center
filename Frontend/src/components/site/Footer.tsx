@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   GraduationCap,
   Phone,
@@ -18,6 +19,24 @@ export default function Footer({
   settings: SchoolSettings;
   t: (key: UIKey) => string;
 }) {
+  const [clickCount, setClickCount] = useState(0);
+
+  useEffect(() => {
+    if (clickCount === 0) return;
+    const timer = setTimeout(() => setClickCount(0), 3000);
+    return () => clearTimeout(timer);
+  }, [clickCount]);
+
+  const handleCopyrightClick = () => {
+    setClickCount((c) => {
+      const next = c + 1;
+      if (next >= 5) {
+        window.location.hash = "#/admin";
+        return 0;
+      }
+      return next;
+    });
+  };
   const socials = [
     { href: settings.telegram, icon: Send },
     { href: settings.instagram, icon: Instagram },
@@ -115,7 +134,10 @@ export default function Footer({
           </div>
         </div>
 
-        <div className="mt-12 border-t border-white/10 pt-6 text-center text-xs text-cream/50">
+        <div
+          onClick={handleCopyrightClick}
+          className="mt-12 border-t border-white/10 pt-6 text-center text-xs text-cream/50 select-none cursor-default"
+        >
           © {new Date().getFullYear()} {settings.name}. {t("footerRights")}
         </div>
       </div>

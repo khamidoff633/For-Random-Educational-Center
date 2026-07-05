@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Clock, CalendarDays, Users, BadgeDollarSign, ArrowRight } from "lucide-react";
+import { useMemo, useState, useRef, useEffect } from "react";
+import { Clock, CalendarDays, Users, BadgeDollarSign, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import SectionHeading from "../ui/SectionHeading";
 import Reveal from "../ui/Reveal";
 import Modal from "../ui/Modal";
@@ -38,6 +38,43 @@ export default function Courses({
 
   const detailTeacher = detail ? teacherById.get(detail.teacherId) : undefined;
 
+  // Auto-scroll loop for mobile Courses Carousel
+  const mobileScrollRef = useRef<HTMLDivElement | null>(null);
+  const isMobilePausedRef = useRef(false);
+
+  useEffect(() => {
+    if (filtered.length <= 1) return;
+    const timer = setInterval(() => {
+      const el = mobileScrollRef.current;
+      if (!el || isMobilePausedRef.current) return;
+      
+      const cardWidth = el.clientWidth;
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      
+      if (el.scrollLeft >= maxScroll - 10) {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        el.scrollBy({ left: cardWidth, behavior: "smooth" });
+      }
+    }, 4500); // 4.5s reading speed
+
+    return () => clearInterval(timer);
+  }, [filtered]);
+
+  const scrollMobile = (direction: "left" | "right") => {
+    const el = mobileScrollRef.current;
+    if (!el) return;
+    isMobilePausedRef.current = true;
+    const cardWidth = el.clientWidth;
+    el.scrollBy({
+      left: direction === "left" ? -cardWidth : cardWidth,
+      behavior: "smooth",
+    });
+    setTimeout(() => {
+      isMobilePausedRef.current = false;
+    }, 5000); // Resume auto scroll after 5 seconds of manual interaction
+  };
+
   return (
     <section id="courses" className="mx-auto w-[92%] max-w-7xl py-24">
       <SectionHeading
@@ -62,7 +99,50 @@ export default function Courses({
         ))}
       </Reveal>
 
-      <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Mobile view: Swipeable Reels Carousel with buttons */}
+      <div className="relative mt-10 group sm:hidden">
+        {/* Navigation Buttons */}
+        <button
+          onClick={() => scrollMobile("left")}
+          className="absolute -left-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none"
+          aria-label="Oldingi"
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <button
+          onClick={() => scrollMobile("right")}
+          className="absolute -right-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none"
+          aria-label="Keyingi"
+        >
+          <ChevronRight size={16} />
+        </button>
+
+        {/* Swipe container */}
+        <div
+          ref={mobileScrollRef}
+          className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth gap-4 pb-6 px-1 [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          onTouchStart={() => { isMobilePausedRef.current = true; }}
+          onTouchEnd={() => { 
+            setTimeout(() => { isMobilePausedRef.current = false; }, 5000); 
+          }}
+        >
+          {filtered.map((course) => (
+            <div key={course.id} className="w-[85vw] shrink-0 snap-center">
+              <CourseCard
+                course={course}
+                teacher={teacherById.get(course.teacherId)}
+                t={t}
+                onEnroll={onEnroll}
+                onDetails={setDetail}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop view: 3-column Grid */}
+      <div className="mt-12 hidden sm:grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((course, i) => (
           <Reveal key={course.id} delay={(i % 3) * 0.08}>
             <CourseCard

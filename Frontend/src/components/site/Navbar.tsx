@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GraduationCap, Menu, X, UserCog } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import LanguageSwitcher from "./LanguageSwitcher";
@@ -10,18 +10,27 @@ interface NavbarProps {
   lang: Language;
   setLang: (lang: Language) => void;
   t: (key: UIKey) => string;
-  onAdminClick: () => void;
   onEnroll: () => void;
 }
 
-export default function Navbar({ settings, lang, setLang, t, onAdminClick, onEnroll }: NavbarProps) {
+export default function Navbar({ settings, lang, setLang, t, onEnroll }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 15);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const hasGallery = (settings.gallery ?? []).length > 0;
 
   const links: { href: string; key: UIKey }[] = [
     { href: "#about", key: "navAbout" },
     { href: "#courses", key: "navCourses" },
+    { href: "#/level-test", key: "navLevelTest" },
     { href: "#teachers", key: "navTeachers" },
     { href: "#results", key: "navResults" },
     ...(hasGallery ? [{ href: "#/galereya", key: "navGallery" as UIKey }] : []),
@@ -32,7 +41,7 @@ export default function Navbar({ settings, lang, setLang, t, onAdminClick, onEnr
   return (
     <header className="fixed inset-x-0 top-0 z-50 py-4">
       <div className="mx-auto w-[95%] max-w-7xl">
-        <nav className="flex h-[4.5rem] items-center justify-between rounded-2xl px-4 glass-nav sm:px-6">
+        <nav className={`flex h-[4.5rem] items-center justify-between rounded-2xl px-4 sm:px-6 transition-all duration-300 ${scrolled ? "glass-nav-scrolled" : "glass-nav"}`}>
           {/* Logo */}
           <a href="#top" className="flex items-center gap-2.5">
             {settings.logoImage ? (
@@ -50,9 +59,9 @@ export default function Navbar({ settings, lang, setLang, t, onAdminClick, onEnr
           </a>
 
           {/* Desktop links */}
-          <div className="hidden items-center gap-8 lg:flex">
+          <div className="hidden items-center gap-3.5 xl:gap-6 lg:flex">
             {links.map((link) => (
-              <a key={link.href} href={link.href} className="nav-warm text-sm font-semibold">
+              <a key={link.href} href={link.href} className="nav-warm text-[13px] xl:text-sm font-semibold whitespace-nowrap">
                 {t(link.key)}
               </a>
             ))}
@@ -67,14 +76,6 @@ export default function Navbar({ settings, lang, setLang, t, onAdminClick, onEnr
               {t("heroCtaPrimary")}
             </button>
             <LanguageSwitcher lang={lang} onChange={setLang} />
-            <button
-              onClick={onAdminClick}
-              title={t("admin")}
-              aria-label={t("admin")}
-              className="group inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white/60 text-charcoal-soft transition hover:border-caramel/40 hover:text-caramel-deep"
-            >
-              <UserCog size={17} className="transition group-hover:scale-110" />
-            </button>
             <button
               onClick={() => setMobileOpen((v) => !v)}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white/60 text-charcoal lg:hidden"
@@ -92,7 +93,7 @@ export default function Navbar({ settings, lang, setLang, t, onAdminClick, onEnr
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="glass-nav mt-2 overflow-hidden rounded-2xl p-3 shadow-soft lg:hidden"
+              className="glass-nav-scrolled mt-2 overflow-hidden rounded-2xl p-3 shadow-soft lg:hidden"
             >
               {links.map((link) => (
                 <a

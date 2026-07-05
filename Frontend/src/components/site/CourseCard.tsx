@@ -1,3 +1,4 @@
+import { useState, useRef } from "react";
 import { Clock, CalendarDays, Users, ArrowRight } from "lucide-react";
 import type { Course, Teacher } from "../../types";
 import type { UIKey } from "../../i18n";
@@ -18,9 +19,39 @@ export default function CourseCard({
   onEnroll: (courseId: string) => void;
   onDetails?: (course: Course) => void;
 }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setCoords({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
   return (
-    <div className="card-soft group flex h-full flex-col overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-soft-lg">
-      <div className="relative h-44 cursor-pointer overflow-hidden" onClick={() => onDetails?.(course)}>
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="card-soft group relative flex h-full flex-col overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-soft-lg"
+    >
+      {/* Spotlight overlay */}
+      {isHovered && (
+        <div
+          className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-300"
+          style={{
+            background: `radial-gradient(180px circle at ${coords.x}px ${coords.y}px, rgba(200, 118, 26, 0.08), transparent 80%)`,
+          }}
+        />
+      )}
+      <div className="relative z-10 flex h-full flex-col flex-1">
+        <div className="relative h-44 cursor-pointer overflow-hidden" onClick={() => onDetails?.(course)}>
         <img
           src={course.image || FALLBACK_IMG}
           alt={course.name}
@@ -67,6 +98,7 @@ export default function CourseCard({
             <ArrowRight size={14} />
           </button>
         </div>
+      </div>
       </div>
     </div>
   );
