@@ -140,7 +140,7 @@ export default function Teachers({
           <button
             onClick={() => scrollMobile("left")}
             disabled={!canScrollLeft}
-            className={`absolute -left-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none ${
+            className={`absolute left-1 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none ${
               !canScrollLeft ? "opacity-30 pointer-events-none" : "opacity-100 hover:scale-105"
             }`}
             aria-label="Oldingi"
@@ -150,7 +150,7 @@ export default function Teachers({
           <button
             onClick={() => scrollMobile("right")}
             disabled={!canScrollRight}
-            className={`absolute -right-2 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none ${
+            className={`absolute right-1 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none ${
               !canScrollRight ? "opacity-30 pointer-events-none" : "opacity-100 hover:scale-105"
             }`}
             aria-label="Keyingi"

@@ -78,7 +78,22 @@ export default function Results({
 }) {
   const [selected, setSelected] = useState<StudentResultItem | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const mobileScrollRef = useRef<HTMLDivElement | null>(null);
   const isPausedRef = useRef(false);
+
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const handleMobileScroll = () => {
+    const el = mobileScrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 5);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 5);
+  };
+
+  useEffect(() => {
+    handleMobileScroll();
+  }, [results]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -151,14 +166,63 @@ export default function Results({
     }, 700);
   };
 
+  const scrollMobile = (direction: "left" | "right") => {
+    const el = mobileScrollRef.current;
+    if (!el) return;
+    const cardWidth = el.clientWidth;
+    el.scrollBy({
+      left: direction === "left" ? -cardWidth : cardWidth,
+      behavior: "smooth",
+    });
+  };
+
   return (
     <section id="results" className="py-24">
       <div className="mx-auto w-[92%] max-w-7xl">
         <SectionHeading eyebrow={t("resultsBadge")} title={t("resultsTitle")} description={t("resultsDesc")} />
       </div>
 
-      {/* Auto-scrolling diploma marquee with manual navigation */}
-      <div className="relative mt-14 group">
+      {/* Mobile view: Swipeable Reels Carousel with buttons (no auto-scroll) */}
+      <div className="relative mt-10 group sm:hidden">
+        {/* Navigation Buttons */}
+        <button
+          onClick={() => scrollMobile("left")}
+          disabled={!canScrollLeft}
+          className={`absolute left-1 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none ${
+            !canScrollLeft ? "opacity-30 pointer-events-none" : "opacity-100 hover:scale-105"
+          }`}
+          aria-label="Oldingi"
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <button
+          onClick={() => scrollMobile("right")}
+          disabled={!canScrollRight}
+          className={`absolute right-1 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none ${
+            !canScrollRight ? "opacity-30 pointer-events-none" : "opacity-100 hover:scale-105"
+          }`}
+          aria-label="Keyingi"
+        >
+          <ChevronRight size={16} />
+        </button>
+
+        {/* Swipe container */}
+        <div
+          ref={mobileScrollRef}
+          onScroll={handleMobileScroll}
+          className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth gap-4 pb-6 px-1 [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {results.map((result) => (
+            <div key={result.id} className="w-[85vw] shrink-0 snap-center flex justify-center">
+              <DiplomaCard result={result} t={t} onOpen={setSelected} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop view: Auto-scrolling diploma marquee with manual navigation */}
+      <div className="relative mt-14 group hidden sm:block">
         {/* Navigation Buttons */}
         <button
           onClick={() => scroll("left")}
