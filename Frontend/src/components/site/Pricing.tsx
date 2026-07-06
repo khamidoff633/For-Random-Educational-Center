@@ -49,7 +49,7 @@ export default function Pricing({
       } else {
         el.scrollBy({ left: cardWidth, behavior: "smooth" });
       }
-    }, 4500); // 4.5s reading speed
+    }, 3000); // 3.0s reading speed
 
     return () => clearInterval(timer);
   }, [plans]);

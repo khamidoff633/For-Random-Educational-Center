@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, type ReactNode } from "react";
 import { X } from "lucide-react";
+import tornPaper from "../../assets/torn_paper.png";
 
 interface ModalProps {
   open: boolean;
@@ -27,11 +28,11 @@ export default function Modal({ open, onClose, children, maxWidth = "max-w-lg", 
 
   const surface =
     tone === "light"
-      ? "bg-white text-charcoal border border-black/5"
+      ? "text-charcoal"
       : "glass-strong text-slate-100";
   const closeBtn =
     tone === "light"
-      ? "text-charcoal-soft hover:bg-black/5 hover:text-charcoal"
+      ? "text-caramel-deep hover:bg-caramel/10"
       : "text-slate-400 hover:bg-white/10 hover:text-white";
 
   return (
@@ -49,7 +50,19 @@ export default function Modal({ open, onClose, children, maxWidth = "max-w-lg", 
             aria-hidden
           />
           <motion.div
-            className={`relative w-full ${maxWidth} max-h-[90vh] overflow-y-auto rounded-3xl p-6 shadow-2xl ${surface}`}
+            className={`relative w-full ${maxWidth} max-h-[90vh] overflow-y-auto shadow-2xl ${surface} ${
+              tone === "light" ? "p-10 pb-12" : "rounded-3xl p-6"
+            }`}
+            style={
+              tone === "light"
+                ? {
+                    backgroundImage: `url(${tornPaper})`,
+                    backgroundSize: "100% 100%",
+                    backgroundRepeat: "no-repeat",
+                    backgroundColor: "transparent",
+                  }
+                : undefined
+            }
             initial={{ scale: 0.92, y: 20, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.92, y: 20, opacity: 0 }}
@@ -59,7 +72,9 @@ export default function Modal({ open, onClose, children, maxWidth = "max-w-lg", 
           >
             <button
               onClick={onClose}
-              className={`absolute right-4 top-4 rounded-full p-2 transition ${closeBtn}`}
+              className={`absolute rounded-full p-2 transition ${closeBtn} ${
+                tone === "light" ? "right-9 top-9" : "right-4 top-4"
+              }`}
               aria-label="Yopish"
             >
               <X size={18} />

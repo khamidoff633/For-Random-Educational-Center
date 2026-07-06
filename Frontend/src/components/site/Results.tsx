@@ -3,10 +3,12 @@ import { Award, Eye, BadgeCheck, ChevronLeft, ChevronRight } from "lucide-react"
 import SectionHeading from "../ui/SectionHeading";
 import Modal from "../ui/Modal";
 import Avatar from "../ui/Avatar";
+import { useLuxuryHover } from "../../hooks/useLuxuryHover";
+import tornPaper from "../../assets/torn_paper.png";
 import type { StudentResultItem } from "../../types";
 import type { UIKey } from "../../i18n";
 
-/** A framed certificate card — espresso frame + gold inner line, portrait. */
+/** A premium certificate card using torn paper background with GSAP lift, glare sweep, and click feedback. */
 function DiplomaCard({
   result,
   t,
@@ -17,53 +19,71 @@ function DiplomaCard({
   onOpen: (r: StudentResultItem) => void;
 }) {
   const hasCertificate = Boolean(result.certificateImage);
+  const cardRef = useLuxuryHover();
+
   return (
     <div
+      ref={cardRef}
       onClick={() => hasCertificate && onOpen(result)}
-      className={`group w-64 shrink-0 transition-transform duration-300 hover:-translate-y-1.5 ${
+      className={`group relative w-64 h-[23rem] shrink-0 transition-all duration-300 ${
         hasCertificate ? "cursor-pointer" : ""
       }`}
+      style={{ 
+        transformStyle: "preserve-3d",
+        backgroundImage: `url(${tornPaper})`,
+        backgroundSize: "100% 100%",
+        backgroundRepeat: "no-repeat"
+      }}
     >
-      {/* Espresso ornate frame */}
-      <div className="rounded-xl bg-espresso p-2.5 shadow-soft-lg">
-        {/* Gold inner line + cream "paper" */}
-        <div className="flex h-[23rem] flex-col items-center rounded-lg border-2 border-caramel/45 bg-gradient-to-b from-white to-cream px-5 py-6 text-center">
-          {/* Header */}
-          <div className="flex items-center gap-2 text-caramel-deep">
-            <Award size={15} />
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em]">{result.examType}</span>
-          </div>
-          <div className="mt-2 h-px w-16 bg-caramel/40" />
+      {/* Glare reflection sweep overlay */}
+      <div 
+        className="card-glare absolute inset-0 rounded-2xl pointer-events-none z-20 opacity-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/40 mix-blend-overlay overflow-hidden" 
+      />
 
-          {/* Student photo (or initials) in a gold frame */}
-          <div className="mt-5 h-24 w-24 overflow-hidden rounded-full border-2 border-caramel/50 ring-4 ring-white">
-            <Avatar
-              name={result.studentName}
-              src={result.image}
-              fontClass="text-2xl"
-              className="h-full w-full rounded-full transition duration-500 group-hover:scale-105"
-            />
-          </div>
-
-          {/* Name + score */}
-          <h3 className="font-display mt-4 text-base font-bold text-charcoal">{result.studentName}</h3>
-          <p className="font-display mt-1 text-4xl font-extrabold text-caramel-deep">{result.score}</p>
-          {result.courseName && (
-            <p className="mt-1 line-clamp-2 text-[11px] text-charcoal-soft">{result.courseName}</p>
-          )}
-
-          {/* Seal */}
-          <div className="mt-auto flex flex-col items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-jade/12 px-2.5 py-1 text-[10px] font-semibold text-jade-deep">
-              <BadgeCheck size={11} /> Tasdiqlangan
-            </span>
-            {hasCertificate && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-caramel-deep opacity-0 transition group-hover:opacity-100">
-                <Eye size={12} /> {t("viewCertificate")}
-              </span>
-            )}
-          </div>
+      {/* Card Content - aligned inside the gold border of the torn paper */}
+      <div className="flex flex-col h-full px-6 py-7 text-center">
+        <div className="flex items-center justify-between">
+          <span className="inline-flex items-center gap-1 rounded-full bg-caramel/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-caramel-deep">
+            <Award size={10} /> {result.examType}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-jade/10 px-2 py-0.5 text-[9px] font-semibold text-jade-deep">
+            <BadgeCheck size={10} /> Tasdiqlangan
+          </span>
         </div>
+
+        {/* Student photo */}
+        <div className="mx-auto mt-6 h-20 w-20 overflow-hidden rounded-full border border-caramel/20 shadow-sm">
+          <Avatar
+            name={result.studentName}
+            src={result.image}
+            fontClass="text-xl"
+            className="h-full w-full rounded-full transition duration-500 group-hover:scale-105"
+          />
+        </div>
+
+        {/* Name + course */}
+        <h3 className="font-display mt-4 text-sm font-bold text-charcoal line-clamp-1">{result.studentName}</h3>
+        {result.courseName ? (
+          <p className="mt-0.5 text-[10px] font-medium text-charcoal-soft/80 line-clamp-1">{result.courseName}</p>
+        ) : (
+          <div className="h-3" />
+        )}
+
+        {/* Score with luxury gold gradient */}
+        <div className="mt-auto mb-2 text-center">
+          <span className="font-display bg-gradient-to-r from-caramel-deep to-caramel bg-clip-text text-transparent text-3xl font-black tracking-tight">
+            {result.score}
+          </span>
+        </div>
+
+        {/* View certificate link */}
+        {hasCertificate ? (
+          <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-caramel-deep opacity-0 transition duration-300 group-hover:opacity-100">
+            <Eye size={12} /> {t("viewCertificate")}
+          </div>
+        ) : (
+          <div className="h-[15px]" />
+        )}
       </div>
     </div>
   );
@@ -78,22 +98,7 @@ export default function Results({
 }) {
   const [selected, setSelected] = useState<StudentResultItem | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const mobileScrollRef = useRef<HTMLDivElement | null>(null);
   const isPausedRef = useRef(false);
-
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-
-  const handleMobileScroll = () => {
-    const el = mobileScrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 5);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 5);
-  };
-
-  useEffect(() => {
-    handleMobileScroll();
-  }, [results]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -104,7 +109,7 @@ export default function Results({
     el.scrollLeft = setWidth;
 
     let frameId: number;
-    const speed = 0.65; // speed of auto scroll
+    const speed = 2.3; // speed of auto scroll
 
     const step = () => {
       if (!isPausedRef.current) {
@@ -166,63 +171,14 @@ export default function Results({
     }, 700);
   };
 
-  const scrollMobile = (direction: "left" | "right") => {
-    const el = mobileScrollRef.current;
-    if (!el) return;
-    const cardWidth = el.clientWidth;
-    el.scrollBy({
-      left: direction === "left" ? -cardWidth : cardWidth,
-      behavior: "smooth",
-    });
-  };
-
   return (
     <section id="results" className="py-24">
       <div className="mx-auto w-[92%] max-w-7xl">
         <SectionHeading eyebrow={t("resultsBadge")} title={t("resultsTitle")} description={t("resultsDesc")} />
       </div>
 
-      {/* Mobile view: Swipeable Reels Carousel with buttons (no auto-scroll) */}
-      <div className="relative mt-10 group sm:hidden">
-        {/* Navigation Buttons */}
-        <button
-          onClick={() => scrollMobile("left")}
-          disabled={!canScrollLeft}
-          className={`absolute left-1 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none ${
-            !canScrollLeft ? "opacity-30 pointer-events-none" : "opacity-100 hover:scale-105"
-          }`}
-          aria-label="Oldingi"
-        >
-          <ChevronLeft size={16} />
-        </button>
-        <button
-          onClick={() => scrollMobile("right")}
-          disabled={!canScrollRight}
-          className={`absolute right-1 top-1/2 -translate-y-1/2 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-caramel/20 bg-white/90 text-caramel-deep shadow-md backdrop-blur-sm transition focus:outline-none ${
-            !canScrollRight ? "opacity-30 pointer-events-none" : "opacity-100 hover:scale-105"
-          }`}
-          aria-label="Keyingi"
-        >
-          <ChevronRight size={16} />
-        </button>
-
-        {/* Swipe container */}
-        <div
-          ref={mobileScrollRef}
-          onScroll={handleMobileScroll}
-          className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth gap-4 pb-6 px-1 [&::-webkit-scrollbar]:hidden"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-        >
-          {results.map((result) => (
-            <div key={result.id} className="w-[85vw] shrink-0 snap-center flex justify-center">
-              <DiplomaCard result={result} t={t} onOpen={setSelected} />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Desktop view: Auto-scrolling diploma marquee with manual navigation */}
-      <div className="relative mt-14 group hidden sm:block">
+      {/* Auto-scrolling diploma marquee with manual navigation */}
+      <div className="relative mt-14 group">
         {/* Navigation Buttons */}
         <button
           onClick={() => scroll("left")}
@@ -263,7 +219,7 @@ export default function Results({
       <Modal open={!!selected} onClose={() => setSelected(null)} maxWidth="max-w-2xl" tone="light">
         {selected && (
           <div>
-            <div className="mb-4 flex items-center gap-3">
+            <div className="mb-4 flex items-center gap-3 pr-10">
               <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-caramel/15 text-caramel-deep">
                 <Award size={22} />
               </span>
