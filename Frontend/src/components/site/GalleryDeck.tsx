@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import gsap from "gsap";
 import type { UIKey } from "../../i18n";
@@ -11,12 +11,20 @@ interface GalleryDeckProps {
 export default function GalleryDeck({ images, t }: GalleryDeckProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Drag states
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+
+  const activeCardRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  if (!images.length) return null;
+  const isCompleted = activeIndex >= images.length;
 
-  const handleNext = () => {
-    if (isAnimating || activeIndex >= images.length) return;
+  // Snappy GSAP swipe helper
+  const swipeAway = (directionX: number, velocityY = -40) => {
+    if (isAnimating) return;
     setIsAnimating(true);
 
     const topCard = cardRefs.current[activeIndex];
@@ -26,29 +34,103 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       return;
     }
 
-    // Modern fast physics swipe direction
-    const direction = Math.random() > 0.5 ? 1 : -1;
-    const exitX = direction * (window.innerWidth > 768 ? 400 : 280);
-    const exitY = -40 - Math.random() * 50;
-    const exitRot = direction * (12 + Math.random() * 8);
+    const exitX = directionX * (window.innerWidth > 768 ? 450 : 320);
+    const exitRot = directionX * 22;
 
-    // Highly realistic, snappy swipe exit
     gsap.to(topCard, {
       x: exitX,
-      y: exitY,
+      y: velocityY,
       rotation: exitRot,
       opacity: 0,
-      scale: 0.94,
-      duration: 0.42,
-      ease: "power3.inOut",
+      scale: 0.93,
+      duration: 0.45,
+      ease: "power2.out",
       onComplete: () => {
+        setDragOffset({ x: 0, y: 0 });
         setActiveIndex((prev) => prev + 1);
         setIsAnimating(false);
       },
     });
   };
 
-  // Modern Stack offsets (Minimalist Hi-Tech look)
+  // Button click backup action
+  const handleNextClick = () => {
+    const dir = Math.random() > 0.5 ? 1 : -1;
+    swipeAway(dir);
+  };
+
+  // ─── Drag Event Handlers ─────────────────────────────────────
+  const getCoords = (e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
+    if ("touches" in e) {
+      if (e.touches.length > 0) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+      if ("changedTouches" in e && e.changedTouches.length > 0) {
+        return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+      }
+    }
+    if ("clientX" in e) {
+      return { x: e.clientX, y: e.clientY };
+    }
+    return { x: 0, y: 0 };
+  };
+
+  const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
+    if (isAnimating || isCompleted) return;
+    const coords = getCoords(e);
+    setDragStart(coords);
+    setDragOffset({ x: 0, y: 0 });
+    setIsDragging(true);
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMove = (e: MouseEvent | TouchEvent) => {
+      const coords = getCoords(e);
+      const dx = coords.x - dragStart.x;
+      const dy = coords.y - dragStart.y;
+      setDragOffset({ x: dx, y: dy });
+    };
+
+    const handleEnd = () => {
+      setIsDragging(false);
+      const threshold = 110;
+
+      // If dragged past threshold, swipe away. Otherwise snap back.
+      if (Math.abs(dragOffset.x) > threshold) {
+        const dir = dragOffset.x > 0 ? 1 : -1;
+        swipeAway(dir, dragOffset.y);
+      } else {
+        // Snap back to original center
+        const topCard = cardRefs.current[activeIndex];
+        if (topCard) {
+          gsap.to(topCard, {
+            x: 0,
+            y: 0,
+            rotation: 0,
+            duration: 0.55,
+            ease: "elastic.out(1, 0.6)",
+          });
+        }
+        setDragOffset({ x: 0, y: 0 });
+      }
+    };
+
+    window.addEventListener("mousemove", handleMove, { passive: true });
+    window.addEventListener("mouseup", handleEnd);
+    window.addEventListener("touchmove", handleMove, { passive: true });
+    window.addEventListener("touchend", handleEnd);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleEnd);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleEnd);
+    };
+  }, [isDragging, dragStart, dragOffset, activeIndex]);
+
+  // Stack layouts with organic random offsets (messy photo stack effect)
   const getCardStyle = (index: number): React.CSSProperties => {
     const offset = index - activeIndex;
 
@@ -61,24 +143,42 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       };
     }
 
-    const maxVisible = 3;
+    const maxVisible = 4;
     if (offset >= maxVisible) {
       return {
         pointerEvents: "none",
         opacity: 0,
-        transform: "scale(0.9)",
+        transform: "scale(0.85)",
         zIndex: 1,
       };
     }
 
-    const scale = 1 - offset * 0.04;
-    const yTranslate = offset * 12;
-    const zIndex = 30 - offset;
-    const opacity = 1 - offset * 0.25;
+    // Active Card is being dragged
+    if (offset === 0 && isDragging) {
+      const rot = dragOffset.x * 0.08; // tilts as dragged
+      return {
+        transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rot}deg)`,
+        zIndex: 50,
+        cursor: "grabbing",
+        userSelect: "none",
+        touchAction: "none",
+      };
+    }
 
-    // Subtle 3D tilt stack styling
-    const baseRotation = index % 2 === 0 ? -1.5 : 1.8;
-    const rotation = offset === 0 ? 0 : baseRotation * (1 + offset * 0.25);
+    // Stack rendering offsets (organic scattering angles)
+    const scale = 1 - offset * 0.045;
+    const zIndex = 30 - offset;
+    const opacity = 1 - offset * 0.22;
+
+    // Define organic rotation & translate offsets to look scattered
+    const rotList = [0, -3.5, 4.2, -1.8, 2.8];
+    const xList = [0, -8, 6, -3, 5];
+    const yList = [0, 6, 12, 18, 22];
+
+    const idxKey = index % 5;
+    const rotation = offset === 0 ? 0 : rotList[idxKey] * (1 + offset * 0.15);
+    const shiftX = offset === 0 ? 0 : xList[idxKey];
+    const shiftY = offset === 0 ? 0 : yList[idxKey];
 
     return {
       position: "absolute",
@@ -86,15 +186,16 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       top: "0",
       width: "100%",
       height: "100%",
-      transform: `translateY(${yTranslate}px) scale(${scale}) rotate(${rotation}deg)`,
+      transform: `translate(${shiftX}px, ${shiftY}px) scale(${scale}) rotate(${rotation}deg)`,
       transformOrigin: "center bottom",
       opacity,
       zIndex,
-      transition: "transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease",
+      transition: "transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1.1), opacity 0.4s ease",
+      cursor: "grab",
+      userSelect: "none",
+      touchAction: "none",
     };
   };
-
-  const isCompleted = activeIndex >= images.length;
 
   return (
     <section id="gallery" className="py-24 bg-cream-soft/10 overflow-hidden relative">
@@ -120,7 +221,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               {!isCompleted ? (
                 <button
-                  onClick={handleNext}
+                  onClick={handleNextClick}
                   disabled={isAnimating}
                   className="btn-primary rounded-full px-7 py-3 text-sm flex items-center gap-2 group shadow-soft"
                 >
@@ -154,33 +255,38 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
               
               {/* Stack Wrapper */}
               {!isCompleted ? (
-                images.map((src, idx) => (
-                  <div
-                    key={idx}
-                    ref={(el) => { cardRefs.current[idx] = el; }}
-                    style={getCardStyle(idx)}
-                  >
-                    {/* Snappy Hi-tech Card (No ornate details, clean borders, high-depth shadows) */}
+                images.map((src, idx) => {
+                  const isActive = idx === activeIndex;
+                  return (
                     <div
-                      onClick={idx === activeIndex ? handleNext : undefined}
-                      className="w-full h-full cursor-pointer select-none bg-neutral-900 border border-black/5 rounded-2xl overflow-hidden shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] transition-all duration-300"
+                      key={idx}
+                      ref={(el) => {
+                        cardRefs.current[idx] = el;
+                      }}
+                      onMouseDown={isActive ? handleStart : undefined}
+                      onTouchStart={isActive ? handleStart : undefined}
+                      style={getCardStyle(idx)}
                     >
-                      <img
-                        src={src}
-                        alt=""
-                        loading="lazy"
-                        className="w-full h-full object-cover pointer-events-none transition duration-500 hover:scale-[1.03]"
-                      />
+                      {/* Premium Photo Card Design: fine ivory paper border with shadow depth */}
+                      <div className="w-full h-full p-2 sm:p-3 bg-[#fffdf6] border border-caramel/15 rounded-2xl shadow-[0_12px_28px_-8px_rgba(40,25,12,0.18)] transition-shadow duration-300 hover:shadow-[0_20px_40px_-10px_rgba(40,25,12,0.28)]">
+                        <div className="w-full h-full rounded-xl overflow-hidden bg-cream-soft">
+                          <img
+                            src={src}
+                            alt=""
+                            className="w-full h-full object-cover pointer-events-none"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
-                /* Completed State: Simple low-key minimalist text in the empty background space */
+                /* Completed State */
                 <span className="text-xs font-bold tracking-wider text-charcoal-soft/50 animate-pulse">
                   {t("navGallery") === "Galereya" 
-                    ? "Rasmlar tugadi" 
+                    ? "Barcha rasmlar ko'rildi" 
                     : t("navGallery") === "Галерея" 
-                    ? "Фотографии закончились" 
+                    ? "Все фото просмотрены" 
                     : "End of gallery"}
                 </span>
               )}
