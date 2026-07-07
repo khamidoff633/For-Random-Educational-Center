@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, CheckCircle2, ChevronRight, GraduationCap, Award, HelpCircle, Loader2, ShieldCheck, Check, X } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChevronRight, GraduationCap, Award, HelpCircle, Loader2, ShieldCheck, Check, X, Hourglass } from "lucide-react";
 import { api } from "../../api/client";
 import { createTranslator } from "../../i18n";
 import type { Course, SchoolSettings } from "../../types";
+import gsap from "gsap";
+import tornPaper from "../../assets/torn_paper.png";
+import twoCandlesImg from "../../assets/two_candles.png";
+import realisticClock from "../../assets/realistic_clock.png";
+import libraryDeskBg from "../../assets/library_desk_bg.jpg";
 
 interface Question {
   id: number;
@@ -362,6 +367,281 @@ const QUESTION_POOL: Question[] = [
   },
 ];
 
+const Candle = () => {
+  const glow1Ref   = useRef<HTMLDivElement>(null);
+  const glow2Ref   = useRef<HTMLDivElement>(null);
+  const ground1Ref = useRef<HTMLDivElement>(null);
+  const ground2Ref = useRef<HTMLDivElement>(null);
+  const spark1Ref  = useRef<HTMLDivElement>(null);
+  const spark2Ref  = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // ── Flicker each candle's glow + its matching ground shadow ──
+    const flicker = (
+      glowEl:    HTMLDivElement | null,
+      groundEl:  HTMLDivElement | null,
+      offsetSec: number
+    ) => {
+      const tl = gsap.timeline({ repeat: -1, delay: offsetSec });
+      for (let i = 0; i < 80; i++) {
+        const dur = 0.03 + Math.random() * 0.07;
+        const op  = 0.45 + Math.random() * 0.55;
+        const sc  = 0.82 + Math.random() * 0.36;
+        const dx  = (-3  + Math.random() * 6);
+        tl.to(glowEl,   { opacity: op, scale: sc, x:  dx, duration: dur, ease: "none" }, i * dur);
+        tl.to(groundEl, { opacity: op * 0.8, scaleX: sc * 0.9, duration: dur, ease: "none" }, i * dur);
+      }
+      return tl;
+    };
+
+    // ── Rising ember sparks ───────────────────────────────────────
+    const sparkUp = (el: HTMLDivElement | null, delay: number) => {
+      gsap.fromTo(el,
+        { y: 0, x: 0, opacity: 0, scale: 0.2 },
+        {
+          y: -120,
+          x: () => -10 + Math.random() * 20,
+          opacity: () => 0.6 + Math.random() * 0.4,
+          scale:   () => 0.05 + Math.random() * 0.25,
+          duration: 1.6 + Math.random() * 2,
+          repeat: -1, delay,
+          ease: "power1.out",
+        }
+      );
+    };
+
+    const tl1 = flicker(glow1Ref.current, ground1Ref.current, 0);
+    const tl2 = flicker(glow2Ref.current, ground2Ref.current, 0.4);
+    sparkUp(spark1Ref.current, 0);
+    sparkUp(spark2Ref.current, 1.2);
+
+    return () => { tl1.kill(); tl2.kill(); };
+  }, []);
+
+  // Flame tip coordinates inside the PNG (tweak if image changes)
+  // Left flame  ≈ 27% from left, 5% from top
+  // Right flame ≈ 67% from left, 14% from top
+  const L = { gx: "27%", gy: "5%",  sx: "22%", sy: "88%" };
+  const R = { gx: "67%", gy: "14%", sx: "62%", sy: "90%" };
+
+  return (
+    <div
+      className="hidden xl:block absolute pointer-events-none select-none parallax-candle"
+      style={{
+        left:   "-400px",
+        bottom: "0",
+        width:  "400px",
+        zIndex: 20,
+      }}
+    >
+      {/* ── Candle PNG ── */}
+      <img
+        src={twoCandlesImg}
+        alt="Vintage Candles"
+        style={{
+          display:   "block",
+          width:     "100%",
+          height:    "auto",
+          // Deep drop-shadow grounds the candle into the background
+          filter:
+            "drop-shadow(0 40px 60px rgba(0,0,0,0.90))" +
+            " drop-shadow(0 10px 25px rgba(0,0,0,0.70))" +
+            " drop-shadow(0  0  100px rgba(255,130,20,0.14))",
+          position: "relative",
+          zIndex: 3,
+        }}
+      />
+
+      {/* ── LEFT flame glow ── */}
+      <div ref={glow1Ref} style={{
+        position:   "absolute",
+        width:      "210px", height: "210px",
+        left:       `calc(${L.gx} - 105px)`,
+        top:        `calc(${L.gy} - 105px)`,
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(255,210,90,0.80) 0%, rgba(255,145,35,0.38) 28%, rgba(255,90,10,0.12) 52%, transparent 72%)",
+        filter:     "blur(24px)",
+        zIndex:     4,
+        transformOrigin: "center center",
+        willChange: "opacity, transform",
+      }} />
+
+      {/* ── LEFT ground light pool (blends with dark floor of bg image) ── */}
+      <div ref={ground1Ref} style={{
+        position:   "absolute",
+        width:      "160px", height: "40px",
+        left:       `calc(${L.sx} - 80px)`,
+        bottom:     "1px",
+        borderRadius: "50%",
+        background: "radial-gradient(ellipse, rgba(255,155,40,0.28) 0%, rgba(255,100,15,0.10) 45%, transparent 72%)",
+        filter:     "blur(14px)",
+        zIndex:     2,
+        transformOrigin: "center bottom",
+        willChange: "opacity, transform",
+      }} />
+
+      {/* ── LEFT spark ── */}
+      <div ref={spark1Ref} style={{
+        position:   "absolute",
+        width: "6px", height: "6px",
+        borderRadius: "50%",
+        background: "rgba(255,235,130,1)",
+        boxShadow:  "0 0 8px 4px rgba(255,210,60,0.75)",
+        left: L.gx, top: L.gy,
+        zIndex: 5,
+        transformOrigin: "center center",
+        willChange: "transform, opacity",
+      }} />
+
+      {/* ── RIGHT flame glow ── */}
+      <div ref={glow2Ref} style={{
+        position:   "absolute",
+        width:      "175px", height: "175px",
+        left:       `calc(${R.gx} - 87px)`,
+        top:        `calc(${R.gy} - 87px)`,
+        borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(255,210,90,0.75) 0%, rgba(255,145,35,0.33) 28%, rgba(255,90,10,0.10) 52%, transparent 72%)",
+        filter:     "blur(20px)",
+        zIndex:     4,
+        transformOrigin: "center center",
+        willChange: "opacity, transform",
+      }} />
+
+      {/* ── RIGHT ground light pool ── */}
+      <div ref={ground2Ref} style={{
+        position:   "absolute",
+        width:      "130px", height: "30px",
+        left:       `calc(${R.sx} - 65px)`,
+        bottom:     "1px",
+        borderRadius: "50%",
+        background: "radial-gradient(ellipse, rgba(255,155,40,0.24) 0%, rgba(255,100,15,0.08) 45%, transparent 72%)",
+        filter:     "blur(12px)",
+        zIndex:     2,
+        transformOrigin: "center bottom",
+        willChange: "opacity, transform",
+      }} />
+
+      {/* ── RIGHT spark ── */}
+      <div ref={spark2Ref} style={{
+        position:   "absolute",
+        width: "5px", height: "5px",
+        borderRadius: "50%",
+        background: "rgba(255,235,130,1)",
+        boxShadow:  "0 0 6px 3px rgba(255,210,60,0.70)",
+        left: R.gx, top: R.gy,
+        zIndex: 5,
+        transformOrigin: "center center",
+        willChange: "transform, opacity",
+      }} />
+    </div>
+  );
+};
+
+
+
+const DeskClock = () => {
+  const secondHandRef = useRef<HTMLDivElement>(null);
+  const minuteHandRef = useRef<HTMLDivElement>(null);
+  const hourHandRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Update hands position in real-time matching the system local time
+    const updateHands = () => {
+      if (!secondHandRef.current || !minuteHandRef.current || !hourHandRef.current) return;
+      const now = new Date();
+      const secs = now.getSeconds();
+      const mins = now.getMinutes() + secs / 60;
+      const hrs = (now.getHours() % 12) + mins / 60;
+
+      // Smooth ticking hands using GSAP
+      gsap.to(secondHandRef.current, {
+        rotation: secs * 6,
+        duration: 0.25,
+        ease: "power2.out"
+      });
+      gsap.to(minuteHandRef.current, {
+        rotation: mins * 6,
+        duration: 0.5,
+        ease: "power1.out"
+      });
+      gsap.to(hourHandRef.current, {
+        rotation: hrs * 30,
+        duration: 0.5,
+        ease: "power1.out"
+      });
+    };
+
+    updateHands();
+    const interval = setInterval(updateHands, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="hidden xl:flex flex-col items-center absolute right-[-200px] bottom-[-10px] z-20 pointer-events-none select-none origin-bottom scale-90 lg:scale-100 parallax-clock">
+      {/* Photo-realistic Clock Body PNG - 2x Larger (260px) */}
+      <div className="relative w-[260px] h-[260px]">
+        <img 
+          src={realisticClock} 
+          alt="Vintage Clock" 
+          className="w-full h-full object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.7)]"
+        />
+
+        {/* Center Pin container (exactly on the center hole of the dial) */}
+        <div className="absolute left-[50%] top-[55.5%] -translate-x-1/2 -translate-y-1/2 w-0 h-0 z-20">
+          {/* Hour Hand */}
+          <div 
+            ref={hourHandRef}
+            className="absolute w-[4.5px] h-[48px] bg-neutral-900 rounded-full origin-bottom"
+            style={{ bottom: 0, left: "-2.25px", transformOrigin: "bottom center" }}
+          />
+          
+          {/* Minute Hand */}
+          <div 
+            ref={minuteHandRef}
+            className="absolute w-[3.2px] h-[68px] bg-neutral-800 rounded-full origin-bottom"
+            style={{ bottom: 0, left: "-1.6px", transformOrigin: "bottom center" }}
+          />
+
+          {/* Second Hand */}
+          <div 
+            ref={secondHandRef}
+            className="absolute w-[1.8px] h-[78px] bg-[#d32f2f] origin-bottom"
+            style={{ bottom: "-16px", left: "-0.9px", transformOrigin: "center 62px" }}
+          />
+
+          {/* Brass Pin Center Cap */}
+          <div className="absolute w-[9px] h-[9px] rounded-full bg-amber-500 border border-amber-700 -left-[4.5px] -top-[4.5px] z-30" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const StopwatchBadge = ({ timeLeft }: { timeLeft: number }) => {
+  const secs = timeLeft < 10 ? "0" + timeLeft : String(timeLeft);
+  const formatted = "00:" + secs;
+  return (
+    <div className="relative flex flex-col items-center select-none origin-center shrink-0">
+      {/* Winding knob and loops */}
+      <div className="flex flex-col items-center -mb-0.5 relative z-0">
+        <div className="w-5 h-2.5 border border-caramel-deep rounded-full bg-cream" />
+        <div className="w-2 h-1 bg-caramel-deep -mt-0.5" />
+      </div>
+
+      {/* Watch Body */}
+      <div className="relative flex items-center justify-center w-14 h-14 rounded-full border-4 border-caramel-deep bg-[#fdfaf5] shadow-sm z-10">
+        {/* Inner ticks */}
+        <div className="absolute inset-1 rounded-full border border-dashed border-caramel/35 pointer-events-none" />
+        
+        {/* Digital countdown */}
+        <span className="text-xs font-extrabold font-mono tracking-tight text-charcoal relative z-20">
+          {formatted}
+        </span>
+      </div>
+    </div>
+  );
+};
+
 const TIMER_SECONDS = 45;
 
 export default function PlacementTestPage({
@@ -387,6 +667,16 @@ export default function PlacementTestPage({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Floating warm dust motes state
+  const [dustMotes] = useState(() =>
+    Array.from({ length: 16 }, (_, i) => ({
+      id: i,
+      size: 1.8 + Math.random() * 4,
+      left: Math.random() * 100 + "%",
+      top: Math.random() * 100 + "%",
+    }))
+  );
+
   // Visual feedback states
   const [clickedIndex, setClickedIndex] = useState<number | null>(null);
   const [revealFeedback, setRevealFeedback] = useState(false);
@@ -409,6 +699,210 @@ export default function PlacementTestPage({
     return () => clearInterval(timer);
   }, [step, qIndex, activeQuestions, isLocked]);
 
+  // Timer Heartbeat Pulse Effect (GSAP)
+  useEffect(() => {
+    if (step !== "quiz" || isLocked) return;
+    const timerCircle = document.querySelector(".timer-badge");
+    if (timerCircle) {
+      const scaleVal = timeLeft <= 10 ? 1.15 : 1.08;
+      const colorVal = timeLeft <= 10 ? "#e74c3c" : "#dca64b";
+      gsap.fromTo(
+        timerCircle,
+        { scale: 1 },
+        { 
+          scale: scaleVal, 
+          color: colorVal,
+          duration: 0.25, 
+          yoyo: true, 
+          repeat: 1, 
+          ease: "power1.out" 
+        }
+      );
+    }
+  }, [timeLeft, step, isLocked]);
+
+  // Spring Card Slide-In & Hourglass Flip Effect on Question Change (GSAP)
+  useEffect(() => {
+    if (step !== "quiz") return;
+    
+    // Slide in the card
+    gsap.fromTo(
+      ".quiz-card",
+      { x: 60, opacity: 0, scale: 0.95 },
+      { x: 0, opacity: 1, scale: 1, duration: 0.55, ease: "elastic.out(1, 0.78)" }
+    );
+
+    // Spin the hourglass 180 degrees
+    gsap.to(".hourglass-container", {
+      rotation: "+=180",
+      duration: 0.85,
+      ease: "back.out(1.4)"
+    });
+  }, [qIndex, step]);
+
+  // ─── 3D Parallax Mouse Move Handler ──────────────────────────
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (window.innerWidth < 1280) return;
+
+    const { clientX, clientY } = e;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    // Normalised coordinates (-0.5 to 0.5)
+    const normX = (clientX / width) - 0.5;
+    const normY = (clientY / height) - 0.5;
+
+    // Smoothly tilt only the card with rotation values (3D depth)
+    gsap.to(".parallax-card", {
+      rotationY: normX * 12,
+      rotationX: -normY * 10,
+      x: normX * 20,
+      y: normY * 15,
+      duration: 0.85,
+      ease: "power2.out"
+    });
+  };
+
+  const handleMouseLeave = () => {
+    // Reset position smoothly
+    gsap.to(".parallax-card", {
+      rotationX: 0,
+      rotationY: 0,
+      x: 0,
+      y: 0,
+      duration: 1.2,
+      ease: "power3.out"
+    });
+  };
+
+  // ─── Ambient Light & Flickering Shadow Loop ──────────────────
+  useEffect(() => {
+    const card = document.querySelector(".parallax-card");
+    const clock = document.querySelector(".parallax-clock");
+    const bleed = document.querySelector(".parallax-glow");
+
+    const shadowTl = gsap.timeline({ repeat: -1 });
+
+    for (let i = 0; i < 50; i++) {
+      const dur = 0.04 + Math.random() * 0.08;
+      const op = 0.5 + Math.random() * 0.5;
+      
+      // Flickering shadow offsets mimicking left candle light source
+      const swayX = 14 + Math.random() * 8; // casts rightwards
+      const swayY = 16 + Math.random() * 6;
+      const blur = 28 + Math.random() * 12;
+
+      shadowTl.to(card, {
+        boxShadow: `${swayX}px ${swayY}px ${blur}px rgba(0,0,0,${op * 0.35})`,
+        duration: dur,
+        ease: "none"
+      }, i * dur);
+
+      if (clock) {
+        const clockSwayX = 22 + Math.random() * 10;
+        shadowTl.to(clock, {
+          filter: `drop-shadow(${clockSwayX}px ${swayY}px ${blur - 6}px rgba(0,0,0,${op * 0.50}))`,
+          duration: dur,
+          ease: "none"
+        }, i * dur);
+      }
+
+      if (bleed) {
+        shadowTl.to(bleed, {
+          opacity: 0.06 + op * 0.12,
+          scale: 0.95 + op * 0.08,
+          duration: dur,
+          ease: "none"
+        }, i * dur);
+      }
+    }
+
+    return () => { shadowTl.kill(); };
+  }, [step]);
+
+  // ─── Dust Motes Drift Animation ─────────────────────────────
+  useEffect(() => {
+    const motes = document.querySelectorAll(".dust-mote");
+    motes.forEach((mote) => {
+      gsap.to(mote, {
+        y: () => -180 - Math.random() * 220,
+        x: () => -25 + Math.random() * 50,
+        keyframes: [
+          { opacity: 0, duration: 0 },
+          { opacity: 0.45, duration: 0.5 },
+          { opacity: 0, duration: 0.5 }
+        ],
+        duration: 9 + Math.random() * 13,
+        repeat: -1,
+        ease: "sine.inOut",
+        delay: -Math.random() * 10
+      });
+    });
+  }, []);
+
+  // Liquid Progress Bar Effect (GSAP)
+  useEffect(() => {
+    if (step !== "quiz" || !activeQuestions.length) return;
+    const pct = ((qIndex + 1) / activeQuestions.length) * 100;
+    gsap.to(".quiz-progress-bar", {
+      width: `${pct}%`,
+      duration: 0.65,
+      ease: "power2.out"
+    });
+  }, [qIndex, step, activeQuestions]);
+
+  // Confetti Particle Explosion on Result Screen (GSAP)
+  useEffect(() => {
+    if (step === "result") {
+      const timer = setTimeout(() => {
+        triggerConfetti();
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
+
+  const triggerConfetti = () => {
+    const container = document.querySelector(".confetti-container");
+    if (!container) return;
+
+    container.innerHTML = "";
+    const colors = ["#dca64b", "#b08130", "#3bb273", "#1d8a4e", "#f39c12", "#e74c3c"];
+    const particleCount = 80;
+
+    for (let i = 0; i < particleCount; i++) {
+      const p = document.createElement("div");
+      p.className = "absolute w-2 h-2 rounded-sm pointer-events-none";
+      p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      p.style.left = "50%";
+      p.style.top = "40%";
+      container.appendChild(p);
+
+      const angle = Math.random() * Math.PI * 2;
+      const velocity = 150 + Math.random() * 260;
+      const xDest = Math.cos(angle) * velocity;
+      const yDest = Math.sin(angle) * velocity - (60 + Math.random() * 120);
+
+      // Launch outwards
+      gsap.to(p, {
+        x: xDest,
+        y: yDest,
+        rotation: Math.random() * 720,
+        duration: 0.7 + Math.random() * 0.7,
+        ease: "power2.out",
+        onComplete: () => {
+          // Fall down under gravity
+          gsap.to(p, {
+            y: yDest + 450,
+            opacity: 0,
+            duration: 1.0 + Math.random() * 1.5,
+            ease: "power1.in",
+            onComplete: () => p.remove()
+          });
+        }
+      });
+    }
+  };
+
   const generateQuiz = () => {
     const levels: ("A1" | "A2" | "B1" | "B2" | "C1" | "C2")[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
     const chosenQuestions: Question[] = [];
@@ -419,7 +913,25 @@ export default function PlacementTestPage({
       chosenQuestions.push(shuffled[0], shuffled[1]);
     });
 
-    setActiveQuestions(chosenQuestions.sort(() => 0.5 - Math.random()));
+    // Shuffling the chosen questions and dynamically randomizing answer positions (A, B, C, D)
+    const randomizedQuestions = chosenQuestions
+      .sort(() => 0.5 - Math.random())
+      .map((q) => {
+        // Generate a random mapping of original indices [0, 1, 2, 3]
+        const indices = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+        return {
+          ...q,
+          options: {
+            uz: indices.map((idx) => q.options.uz[idx]),
+            ru: indices.map((idx) => q.options.ru[idx]),
+            en: indices.map((idx) => q.options.en[idx]),
+          },
+          // Original correct answer was always index 0. Find where 0 went.
+          correctIndex: indices.indexOf(0),
+        };
+      });
+
+    setActiveQuestions(randomizedQuestions);
     setAnswers([]);
     setQIndex(0);
     setTimeLeft(TIMER_SECONDS);
@@ -436,7 +948,16 @@ export default function PlacementTestPage({
     setClickedIndex(optionIdx);
     setRevealFeedback(true);
 
-    // Delay by 1.2 seconds so the student can study the outcome
+    // Slide out the card to the left smoothly before setting the next question
+    gsap.to(".quiz-card", {
+      x: -45,
+      opacity: 0,
+      scale: 0.95,
+      delay: 0.75,
+      duration: 0.35,
+      ease: "power2.in"
+    });
+
     setTimeout(() => {
       const nextAnswers = [...answers, optionIdx];
       setAnswers(nextAnswers);
@@ -450,7 +971,7 @@ export default function PlacementTestPage({
       } else {
         setStep("result");
       }
-    }, 1200);
+    }, 1100);
   };
 
   // Calculate score
@@ -520,7 +1041,7 @@ export default function PlacementTestPage({
   } else {
     levelName = "Advanced (C2)";
     levelDesc = lang === "uz"
-      ? "Siz ingliz tilini ona tili darajasida bilasiz. Ilmiy yoki biznes darajasidagi ingliz tili, shuningdek IELTS 8.0+ kurslarimiz sizga mos."
+      ? "Siz ingliz tilini ona tili darajasida bilasiz. Akademik ingliz tili yoki IELTS 8.0+ kurslarimiz sizga mos."
       : lang === "ru"
       ? "Вы владеете английским на уровне носителя. Подходят курсы академического английского или подготовка к IELTS 8.0+."
       : "You possess native-like fluency. Academic English or IELTS 8.0+ courses are suitable for you.";
@@ -572,160 +1093,194 @@ export default function PlacementTestPage({
   const strokeDashoffset = circumference - (timeLeft / TIMER_SECONDS) * circumference;
 
   return (
-    <div className="min-h-screen bg-warm text-charcoal py-12 px-4 sm:px-6 relative overflow-hidden flex items-center justify-center">
-      {/* Background blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-caramel/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-caramel/5 blur-[120px] pointer-events-none" />
+    <div 
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="min-h-screen text-charcoal py-12 px-4 sm:px-6 relative overflow-hidden flex items-center justify-center"
+      style={{
+        backgroundImage: `linear-gradient(to bottom right, rgba(20,12,6,0.84), rgba(35,22,12,0.80), rgba(15,8,4,0.88)), url(${libraryDeskBg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        perspective: "1200px" // critical for true 3d CSS transforms
+      }}
+    >
+      {/* Global Ambient light bleed from left candle */}
+      <div 
+        className="parallax-glow absolute top-1/4 left-[-10%] w-[850px] h-[850px] rounded-full pointer-events-none z-10" 
+        style={{
+          background: "radial-gradient(circle, rgba(255,155,25,0.18) 0%, rgba(255,100,10,0.06) 42%, transparent 70%)",
+          filter: "blur(130px)",
+        }}
+      />
 
+      {/* Floating dust motes layer */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
+        {dustMotes.map((mote) => (
+          <div
+            key={mote.id}
+            className="dust-mote absolute rounded-full bg-amber-300/40"
+            style={{
+              width: mote.size,
+              height: mote.size,
+              left: mote.left,
+              top: mote.top,
+              boxShadow: "0 0 6px 2px rgba(255,180,60,0.12)",
+              filter: "blur(0.5px)",
+            }}
+          />
+        ))}
+      </div>
 
-      <div className="w-full max-w-2xl bg-white/75 backdrop-blur-xl border border-black/5 rounded-3xl p-6 sm:p-10 shadow-soft-xl relative z-10">
+      {/* Dynamic confetti celebration container */}
+      <div className="confetti-container absolute inset-0 pointer-events-none z-50 overflow-hidden" />
+
+      {/* Background blobs (soft warmth) */}
+      <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/5 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/5 blur-[120px] pointer-events-none" />
+
+      {/* Main unified workspace container: anchors left and right desk elements relative to the card */}
+      <div className="relative flex items-end justify-center w-full max-w-2xl mx-auto my-auto">
         
-        {/* Header with Back button */}
-        {step !== "success" && (
-          <div className="flex items-center justify-between mb-8 pb-4 border-b border-black/5">
-            <button
-              onClick={onBack}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-charcoal-soft hover:text-caramel-deep transition"
-            >
-              <ArrowLeft size={16} />
-              {t("galleryBackHome")}
-            </button>
-            <div className="flex items-center gap-1.5 font-display text-sm font-extrabold text-caramel-deep">
-              <GraduationCap size={18} />
-              {settings.name}
-            </div>
-          </div>
-        )}
+        {/* Single Candle on the Left */}
+        <Candle />
 
-        {/* Intro Step */}
-        {step === "intro" && (
-          <div className="text-center py-6">
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-caramel/10 text-caramel-deep mb-6">
-              <Award size={32} />
-            </div>
-            <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-charcoal mb-4">
-              {t("levelTestTitle")}
-            </h1>
-            <p className="text-base text-charcoal-soft leading-relaxed max-w-lg mx-auto mb-8">
-              {lang === "uz"
-                ? "48 ta savoldan iborat CEFR bazasidan tasodifiy olingan 12 ta tezkor savol orqali bilimingizni aniq tekshiring. Har bir savolga 45 soniya beriladi."
-                : lang === "ru"
-                ? "Проверьте свои знания с помощью 12 случайных вопросов из базы CEFR (48 вопросов). На каждый вопрос дается 45 секунд."
-                : "Accurately test your English with 12 randomized CEFR questions selected from a pool of 48. You have 45 seconds per question."}
-            </p>
-            <button onClick={generateQuiz} className="btn-primary rounded-full px-8 py-3.5 text-base shadow-soft-lg w-full sm:w-auto">
-              {t("levelTestStart")}
-              <ChevronRight size={18} className="inline ml-1" />
-            </button>
-          </div>
-        )}
-
-        {/* Quiz Step */}
-        {step === "quiz" && activeQuestions.length > 0 && (
-          <div>
-            {/* Header / Progress & Timer */}
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs uppercase font-extrabold tracking-widest text-caramel-deep">
-                    Level Test
-                  </span>
-                  <span className="text-[10px] font-extrabold bg-caramel/10 text-caramel-deep px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    {getLiveLevel()}
-                  </span>
-                </div>
-                <h3 className="font-display text-sm font-bold text-charcoal mt-1">
-                  {t("question")} {qIndex + 1} {t("of")} {activeQuestions.length}
-                </h3>
-              </div>
-
-              {/* Circular SVG Timer */}
-              <div className="relative flex items-center justify-center h-12 w-12 shrink-0">
-                <svg className="transform -rotate-90 w-12 h-12">
-                  <circle
-                    cx="24"
-                    cy="24"
-                    r={radius}
-                    stroke="rgba(0, 0, 0, 0.05)"
-                    strokeWidth="3"
-                    fill="transparent"
-                  />
-                  <circle
-                    cx="24"
-                    cy="24"
-                    r={radius}
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    fill="transparent"
-                    className="text-caramel transition-all duration-1000"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={strokeDashoffset}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-charcoal">
-                  {timeLeft}
-                </div>
+        {/* Parchment Card */}
+        <div 
+          className="parallax-card w-full max-w-2xl relative z-10 p-10 pb-12 sm:p-14 sm:pb-16 min-h-[520px]"
+          style={{
+            backgroundImage: `url(${tornPaper})`,
+            backgroundSize: "100% 100%",
+            backgroundRepeat: "no-repeat",
+            backgroundColor: "transparent",
+            transformStyle: "preserve-3d",
+          }}
+        >
+          
+          {/* Header with Back button */}
+          {step !== "success" && (
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-black/5">
+              <button
+                onClick={onBack}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-charcoal-soft hover:text-caramel-deep transition"
+              >
+                <ArrowLeft size={16} />
+                {t("galleryBackHome")}
+              </button>
+              <div className="flex items-center gap-1.5 font-display text-sm font-extrabold text-caramel-deep">
+                <GraduationCap size={18} />
+                {settings.name}
               </div>
             </div>
+          )}
 
-            {/* Progress bar */}
-            <div className="h-1.5 w-full bg-black/5 rounded-full overflow-hidden mb-6">
-              <div 
-                className="h-full bg-gradient-to-r from-caramel to-caramel-deep transition-all duration-300"
-                style={{ width: `${((qIndex + 1) / activeQuestions.length) * 100}%` }}
-              />
+          {/* Intro Step */}
+          {step === "intro" && (
+            <div className="text-center py-6">
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-caramel/10 text-caramel-deep mb-6 animate-pulse">
+                <Award size={32} />
+              </div>
+              <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-charcoal mb-4">
+                {t("levelTestTitle")}
+              </h1>
+              <p className="text-base text-charcoal-soft leading-relaxed max-w-lg mx-auto mb-8 font-medium">
+                {lang === "uz"
+                  ? "48 ta savoldan iborat CEFR bazasidan tasodifiy olingan 12 ta tezkor savol orqali bilimingizni aniq tekshiring. Har bir savolga 45 soniya beriladi."
+                  : lang === "ru"
+                  ? "Проверьте свои знания с помощью 12 случайных вопросов из базы CEFR (48 вопросов). На каждый вопрос дается 45 секунд."
+                  : "Accurately test your English with 12 randomized CEFR questions selected from a pool of 48. You have 45 seconds per question."}
+              </p>
+              <button onClick={generateQuiz} className="btn-primary rounded-full px-8 py-3.5 text-base shadow-soft-lg w-full sm:w-auto">
+                {t("levelTestStart")}
+                <ChevronRight size={18} className="inline ml-1" />
+              </button>
             </div>
+          )}
 
-            {/* Question Text */}
-            <div className="bg-cream-soft rounded-2xl p-5 border border-black/5 mb-6 flex items-start gap-3">
-              <HelpCircle size={20} className="text-caramel shrink-0 mt-0.5" />
-              <h2 className="font-display text-lg font-bold text-charcoal leading-snug">
-                {activeQuestions[qIndex].text[lang] || activeQuestions[qIndex].text.en}
-              </h2>
-            </div>
+          {/* Quiz Step */}
+          {step === "quiz" && activeQuestions.length > 0 && (
+            <div>
+              {/* Header / Progress & Timer */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs uppercase font-extrabold tracking-widest text-caramel-deep">
+                      Level Test
+                    </span>
+                    <span className="text-[10px] font-extrabold bg-caramel/10 text-caramel-deep px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      {getLiveLevel()}
+                    </span>
+                  </div>
+                  <h3 className="font-display text-sm font-bold text-charcoal mt-1">
+                    {t("question")} {qIndex + 1} {t("of")} {activeQuestions.length}
+                  </h3>
+                </div>
 
-            {/* Options */}
-            <div className="grid grid-cols-1 gap-3">
-              {(activeQuestions[qIndex].options[lang] || activeQuestions[qIndex].options.en).map((opt, idx) => {
-                const isSelected = clickedIndex === idx;
-                const isCorrectOption = idx === activeQuestions[qIndex].correctIndex;
-                
-                let btnStyle = "bg-white border-black/5 hover:border-caramel/40 hover:bg-cream-soft text-charcoal";
-                let iconEl = null;
+                {/* Animated Stopwatch Timer */}
+                <StopwatchBadge timeLeft={timeLeft} />
+              </div>
 
-                if (revealFeedback) {
-                  if (isCorrectOption) {
-                    btnStyle = "bg-emerald-50/70 border-emerald-500 text-emerald-700 shadow-sm shadow-emerald-100";
-                    iconEl = <Check size={16} className="text-emerald-600 shrink-0" />;
-                  } else if (isSelected) {
-                    btnStyle = "bg-rose-50/70 border-rose-500 text-rose-700 shadow-sm shadow-rose-100";
-                    iconEl = <X size={16} className="text-rose-600 shrink-0" />;
-                  } else {
-                    btnStyle = "bg-white border-black/5 text-charcoal opacity-40";
+              {/* Liquid progress bar */}
+              <div className="h-1.5 w-full bg-black/5 rounded-full overflow-hidden mb-6">
+                <div 
+                  className="quiz-progress-bar h-full bg-gradient-to-r from-caramel to-caramel-deep"
+                  style={{ width: "0%" }}
+                />
+              </div>
+
+            {/* Animated Quiz Card (Text & Options) */}
+            <div className="quiz-card">
+              {/* Question Text */}
+              <div className="bg-cream-soft rounded-2xl p-5 border border-black/5 mb-6 flex items-start gap-3 shadow-sm">
+                <HelpCircle size={20} className="text-caramel shrink-0 mt-0.5" />
+                <h2 className="font-display text-lg font-bold text-charcoal leading-snug">
+                  {activeQuestions[qIndex].text[lang] || activeQuestions[qIndex].text.en}
+                </h2>
+              </div>
+
+              {/* Options */}
+              <div className="grid grid-cols-1 gap-3">
+                {(activeQuestions[qIndex].options[lang] || activeQuestions[qIndex].options.en).map((opt, idx) => {
+                  const isSelected = clickedIndex === idx;
+                  const isCorrectOption = idx === activeQuestions[qIndex].correctIndex;
+                  
+                  let btnStyle = "bg-white border-black/5 hover:border-caramel/40 hover:bg-cream-soft text-charcoal";
+                  let iconEl = null;
+
+                  if (revealFeedback) {
+                    if (isCorrectOption) {
+                      btnStyle = "bg-emerald-50/70 border-emerald-500 text-emerald-700 shadow-sm shadow-emerald-100";
+                      iconEl = <Check size={16} className="text-emerald-600 shrink-0 animate-bounce" />;
+                    } else if (isSelected) {
+                      btnStyle = "bg-rose-50/70 border-rose-500 text-rose-700 shadow-sm shadow-rose-100";
+                      iconEl = <X size={16} className="text-rose-600 shrink-0" />;
+                    } else {
+                      btnStyle = "bg-white border-black/5 text-charcoal opacity-40";
+                    }
                   }
-                }
 
-                const animClass = revealFeedback
-                  ? (isCorrectOption ? "animate-ripple" : (isSelected ? "animate-gentle-shake" : ""))
-                  : "";
+                  const animClass = revealFeedback
+                    ? (isCorrectOption ? "animate-ripple" : (isSelected ? "animate-gentle-shake" : ""))
+                    : "";
 
-                return (
-                  <button
-                    key={idx}
-                    disabled={isLocked}
-                    onClick={() => handleAnswer(idx)}
-                    className={`w-full text-left border rounded-2xl px-5 py-4 text-sm font-semibold transition-all duration-200 shadow-soft flex items-center justify-between group ${btnStyle} ${animClass}`}
-                  >
-                    <span>{opt}</span>
-                    <div className="flex items-center gap-2">
-                      {iconEl}
-                      <span className="h-6 w-6 rounded-full border border-black/10 flex items-center justify-center text-[10px] font-bold text-charcoal-soft bg-warm group-hover:border-caramel group-hover:text-caramel group-hover:bg-white uppercase">
-                        {String.fromCharCode(97 + idx)}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={idx}
+                      disabled={isLocked}
+                      onClick={() => handleAnswer(idx)}
+                      className={`w-full text-left border rounded-2xl px-5 py-4 text-sm font-semibold transition-all duration-200 shadow-soft flex items-center justify-between group hover:-translate-y-0.5 active:scale-95 ${btnStyle} ${animClass}`}
+                    >
+                      <span>{opt}</span>
+                      <div className="flex items-center gap-2">
+                        {iconEl}
+                        <span className="h-6 w-6 rounded-full border border-black/10 flex items-center justify-center text-[10px] font-bold text-charcoal-soft bg-warm group-hover:border-caramel group-hover:text-caramel group-hover:bg-white uppercase">
+                          {String.fromCharCode(97 + idx)}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
@@ -914,6 +1469,12 @@ export default function PlacementTestPage({
           </div>
         )}
 
+        </div> {/* Closes Parchment Card */}
+
+        {/* Flanking Desk Clock on the Right */}
+        {step !== "success" && (
+          <DeskClock />
+        )}
       </div>
     </div>
   );
