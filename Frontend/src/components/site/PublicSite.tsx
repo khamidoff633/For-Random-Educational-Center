@@ -9,6 +9,7 @@ import Courses from "./Courses";
 import Pricing from "./Pricing";
 import Teachers from "./Teachers";
 import Results from "./Results";
+import GalleryDeck from "./GalleryDeck";
 import Reviews from "./Reviews";
 import PartnersStrip from "./PartnersStrip";
 import Branches from "./Branches";
@@ -84,6 +85,7 @@ export default function PublicSite({
         <Pricing plans={settings.pricing ?? []} t={t} onEnroll={() => openEnroll()} />
         <Teachers teachers={teachers} t={t} />
         <Results results={results} t={t} />
+        <GalleryDeck images={settings.gallery ?? []} t={t} />
         <Reviews reviews={settings.reviews ?? []} t={t} />
         <PartnersStrip logos={settings.partners ?? []} t={t} />
         <Branches branches={settings.branches ?? []} t={t} />

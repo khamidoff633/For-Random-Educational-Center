@@ -33,7 +33,7 @@ export default function Navbar({ settings, lang, setLang, t, onEnroll }: NavbarP
     { href: "#/level-test", key: "navLevelTest" },
     { href: "#teachers", key: "navTeachers" },
     { href: "#results", key: "navResults" },
-    ...(hasGallery ? [{ href: "#/galereya", key: "navGallery" as UIKey }] : []),
+    ...(hasGallery ? [{ href: "#gallery", key: "navGallery" as UIKey }] : []),
     { href: "#faq", key: "navFaq" },
     { href: "#contact", key: "navContact" },
   ];
