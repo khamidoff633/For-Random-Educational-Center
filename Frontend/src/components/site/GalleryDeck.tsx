@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ArrowRight, RotateCcw, ImageOff } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import gsap from "gsap";
 import type { UIKey } from "../../i18n";
 
@@ -26,21 +26,21 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       return;
     }
 
-    // Determine random exit angle and direction (left or right)
+    // Modern fast physics swipe direction
     const direction = Math.random() > 0.5 ? 1 : -1;
-    const exitX = direction * (window.innerWidth > 768 ? 450 : 300);
-    const exitY = -50 - Math.random() * 80;
-    const exitRot = direction * (15 + Math.random() * 15);
+    const exitX = direction * (window.innerWidth > 768 ? 400 : 280);
+    const exitY = -40 - Math.random() * 50;
+    const exitRot = direction * (12 + Math.random() * 8);
 
-    // GSAP Swipe/Throw Animation
+    // Highly realistic, snappy swipe exit
     gsap.to(topCard, {
       x: exitX,
       y: exitY,
       rotation: exitRot,
       opacity: 0,
-      scale: 0.9,
-      duration: 0.65,
-      ease: "power2.out",
+      scale: 0.94,
+      duration: 0.42,
+      ease: "power3.inOut",
       onComplete: () => {
         setActiveIndex((prev) => prev + 1);
         setIsAnimating(false);
@@ -48,70 +48,37 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     });
   };
 
-  const handleReset = () => {
-    setActiveIndex(0);
-    // Animate all cards flying back in
-    setTimeout(() => {
-      cardRefs.current.forEach((card, idx) => {
-        if (!card) return;
-        gsap.fromTo(
-          card,
-          {
-            x: idx % 2 === 0 ? -300 : 300,
-            y: -100,
-            rotation: idx % 2 === 0 ? -25 : 25,
-            opacity: 0,
-            scale: 0.8,
-          },
-          {
-            x: 0,
-            y: 0,
-            rotation: () => -3 + Math.random() * 6,
-            opacity: 1,
-            scale: 1,
-            duration: 0.75,
-            delay: (images.length - 1 - idx) * 0.08,
-            ease: "back.out(1.2)",
-          }
-        );
-      });
-    }, 50);
-  };
-
-  // Stack styling offsets
+  // Modern Stack offsets (Minimalist Hi-Tech look)
   const getCardStyle = (index: number): React.CSSProperties => {
     const offset = index - activeIndex;
 
-    // Card already swiped/thrown
     if (offset < 0) {
       return {
         pointerEvents: "none",
         opacity: 0,
-        transform: "scale(0.85) translate(0px, -40px) rotate(0deg)",
+        transform: "scale(0.9) translateY(-30px)",
         zIndex: 0,
       };
     }
 
-    // Maximum cards visible in stack at once
     const maxVisible = 3;
     if (offset >= maxVisible) {
       return {
         pointerEvents: "none",
         opacity: 0,
-        transform: "scale(0.85)",
+        transform: "scale(0.9)",
         zIndex: 1,
       };
     }
 
-    const scale = 1 - offset * 0.05;
-    const yTranslate = offset * 14;
-    // Layering index
+    const scale = 1 - offset * 0.04;
+    const yTranslate = offset * 12;
     const zIndex = 30 - offset;
-    const opacity = 1 - offset * 0.28;
+    const opacity = 1 - offset * 0.25;
 
-    // Slight rotation to look naturally shuffled
-    const baseRotation = index % 2 === 0 ? -2 : 2.5;
-    const rotation = offset === 0 ? 0 : baseRotation * (1 + offset * 0.3);
+    // Subtle 3D tilt stack styling
+    const baseRotation = index % 2 === 0 ? -1.5 : 1.8;
+    const rotation = offset === 0 ? 0 : baseRotation * (1 + offset * 0.25);
 
     return {
       position: "absolute",
@@ -123,18 +90,14 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       transformOrigin: "center bottom",
       opacity,
       zIndex,
-      transition: "transform 0.45s cubic-bezier(0.2, 0.8, 0.25, 1.1), opacity 0.45s ease",
+      transition: "transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease",
     };
   };
 
   const isCompleted = activeIndex >= images.length;
 
   return (
-    <section id="gallery" className="py-24 bg-cream-soft/30 overflow-hidden relative">
-      {/* Background visual elements */}
-      <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-caramel/5 blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-caramel/5 blur-[100px] pointer-events-none" />
-
+    <section id="gallery" className="py-24 bg-cream-soft/10 overflow-hidden relative">
       <div className="mx-auto w-[92%] max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
@@ -165,13 +128,16 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                   <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
                 </button>
               ) : (
-                <button
-                  onClick={handleReset}
-                  className="btn-secondary rounded-full px-7 py-3 text-sm flex items-center gap-2 group shadow-soft"
-                >
-                  <RotateCcw size={16} className="transition-transform group-hover:rotate-[-45deg]" />
-                  <span>{t("navGallery") === "Galereya" ? "Qaytadan ko'rish" : t("navGallery") === "Галерея" ? "Посмотреть заново" : "View again"}</span>
-                </button>
+                <div className="flex items-center gap-2 text-xs font-bold text-charcoal-soft/75 bg-black/5 px-4 py-2 rounded-full">
+                  <CheckCircle2 size={14} className="text-jade-deep" />
+                  <span>
+                    {t("navGallery") === "Galereya" 
+                      ? "Barcha rasmlar ko'rildi" 
+                      : t("navGallery") === "Галерея" 
+                      ? "Все фото просмотрены" 
+                      : "All photos viewed"}
+                  </span>
+                </div>
               )}
               
               {!isCompleted && (
@@ -184,7 +150,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
 
           {/* Right Interactive Stack Column */}
           <div className="lg:col-span-7 flex justify-center items-center">
-            <div className="relative w-[320px] h-[240px] sm:w-[440px] sm:h-[330px]">
+            <div className="relative w-[300px] h-[225px] sm:w-[420px] sm:h-[315px] flex items-center justify-center">
               
               {/* Stack Wrapper */}
               {!isCompleted ? (
@@ -194,55 +160,29 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                     ref={(el) => { cardRefs.current[idx] = el; }}
                     style={getCardStyle(idx)}
                   >
-                    {/* Spotlight at the top of active card */}
-                    {idx === activeIndex && <div className="museum-spotlight" style={{ top: "-15px" }} />}
-
+                    {/* Snappy Hi-tech Card (No ornate details, clean borders, high-depth shadows) */}
                     <div
                       onClick={idx === activeIndex ? handleNext : undefined}
-                      className="museum-frame w-full h-full cursor-pointer select-none"
+                      className="w-full h-full cursor-pointer select-none bg-neutral-900 border border-black/5 rounded-2xl overflow-hidden shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] transition-all duration-300"
                     >
-                      <div className="frame-glare" />
-                      <div className="museum-mat w-full h-full">
-                        <img
-                          src={src}
-                          alt=""
-                          loading="lazy"
-                          className="max-h-full max-w-full object-contain pointer-events-none"
-                        />
-                      </div>
+                      <img
+                        src={src}
+                        alt=""
+                        loading="lazy"
+                        className="w-full h-full object-cover pointer-events-none transition duration-500 hover:scale-[1.03]"
+                      />
                     </div>
                   </div>
                 ))
               ) : (
-                /* Completed State Card */
-                <div
-                  className="w-full h-full museum-frame flex flex-col items-center justify-center text-center p-6"
-                  style={{
-                    boxShadow: "0 15px 35px rgba(0,0,0,0.35)",
-                    background: "linear-gradient(135deg, #1f140b 0%, #130a05 100%)",
-                  }}
-                >
-                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-caramel/10 text-caramel mb-4">
-                    <ImageOff size={24} />
-                  </div>
-                  <h3 className="font-display text-lg font-bold text-amber-200/90 mb-1">
-                    {t("navGallery") === "Galereya" ? "Rasmlar tugadi" : t("navGallery") === "Галерея" ? "Фотографии закончились" : "End of gallery"}
-                  </h3>
-                  <p className="text-xs text-amber-100/60 max-w-xs mb-5 leading-relaxed">
-                    {t("navGallery") === "Galereya" 
-                      ? "Barcha foto-lavhalarni ko'rib chiqdingiz. Qiziqishingiz uchun rahmat!" 
-                      : t("navGallery") === "Галерея"
-                      ? "Вы просмотрели все фотографии. Спасибо за ваш интерес!"
-                      : "You have viewed all photos. Thank you for your interest!"}
-                  </p>
-                  <button
-                    onClick={handleReset}
-                    className="btn-primary rounded-full px-5 py-2.5 text-xs flex items-center gap-1.5 shadow-md"
-                  >
-                    <RotateCcw size={13} />
-                    <span>{t("navGallery") === "Galereya" ? "Boshidan boshlash" : t("navGallery") === "Галерея" ? "Начать сначала" : "Start over"}</span>
-                  </button>
-                </div>
+                /* Completed State: Simple low-key minimalist text in the empty background space */
+                <span className="text-xs font-bold tracking-wider text-charcoal-soft/50 animate-pulse">
+                  {t("navGallery") === "Galereya" 
+                    ? "Rasmlar tugadi" 
+                    : t("navGallery") === "Галерея" 
+                    ? "Фотографии закончились" 
+                    : "End of gallery"}
+                </span>
               )}
 
             </div>
