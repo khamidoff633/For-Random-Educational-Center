@@ -21,7 +21,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
 
   const isCompleted = activeIndex >= images.length;
 
-  // Snappy GSAP swipe helper
+  // Snappy swipe out animation
   const swipeAway = (directionX: number, velocityY = -30) => {
     if (isAnimating) return;
     setIsAnimating(true);
@@ -93,23 +93,34 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
 
     const handleEnd = () => {
       setIsDragging(false);
-      const threshold = 110;
 
-      if (Math.abs(dragOffset.x) > threshold) {
-        const dir = dragOffset.x > 0 ? 1 : -1;
-        swipeAway(dir, dragOffset.y);
+      // Check drag distance vector length to differentiate drag vs click/tap
+      const distance = Math.sqrt(dragOffset.x * dragOffset.x + dragOffset.y * dragOffset.y);
+      const clickThreshold = 6; // pixels
+
+      if (distance < clickThreshold) {
+        // User just tapped/clicked without dragging: trigger instant auto swipe!
+        const dir = Math.random() > 0.5 ? 1 : -1;
+        swipeAway(dir);
       } else {
-        const topCard = cardRefs.current[activeIndex];
-        if (topCard) {
-          gsap.to(topCard, {
-            x: 0,
-            y: 0,
-            rotation: 0,
-            duration: 0.5,
-            ease: "elastic.out(1, 0.65)",
-          });
+        const threshold = 110;
+        if (Math.abs(dragOffset.x) > threshold) {
+          const dir = dragOffset.x > 0 ? 1 : -1;
+          swipeAway(dir, dragOffset.y);
+        } else {
+          // Snap back
+          const topCard = cardRefs.current[activeIndex];
+          if (topCard) {
+            gsap.to(topCard, {
+              x: 0,
+              y: 0,
+              rotation: 0,
+              duration: 0.5,
+              ease: "elastic.out(1, 0.65)",
+            });
+          }
+          setDragOffset({ x: 0, y: 0 });
         }
-        setDragOffset({ x: 0, y: 0 });
       }
     };
 
@@ -126,7 +137,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     };
   }, [isDragging, dragStart, dragOffset, activeIndex]);
 
-  // Stack layouts with organic random offsets (messy photo stack effect)
+  // Stack layouts with organic random offsets
   const getCardStyle = (index: number): React.CSSProperties => {
     const offset = index - activeIndex;
 
@@ -151,7 +162,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
 
     // Active Card is being dragged
     if (offset === 0 && isDragging) {
-      const rot = (dragOffset.x / window.innerWidth) * 35; // realistic angle swing
+      const rot = (dragOffset.x / window.innerWidth) * 35;
       return {
         transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rot}deg)`,
         zIndex: 50,
@@ -260,7 +271,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
               </div>
             )}
 
-            <div className="relative w-[300px] h-[240px] sm:w-[420px] sm:h-[330px] flex items-center justify-center">
+            <div className="relative w-[300px] h-[240px] sm:w-[420px] sm:h-[315px] flex items-center justify-center">
               
               {/* Stack Wrapper */}
               {!isCompleted ? (
