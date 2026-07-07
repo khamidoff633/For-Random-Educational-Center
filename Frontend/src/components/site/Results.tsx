@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Award, Eye, BadgeCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import SectionHeading from "../ui/SectionHeading";
 import Modal from "../ui/Modal";
@@ -7,6 +7,7 @@ import { useLuxuryHover } from "../../hooks/useLuxuryHover";
 import tornPaper from "../../assets/torn_paper.png";
 import type { StudentResultItem } from "../../types";
 import type { UIKey } from "../../i18n";
+import gsap from "gsap";
 
 /** A premium certificate card using torn paper background with GSAP lift, glare sweep, and click feedback. */
 function DiplomaCard({
@@ -97,131 +98,182 @@ export default function Results({
   t: (key: UIKey) => string;
 }) {
   const [selected, setSelected] = useState<StudentResultItem | null>(null);
-  const [paused, setPaused] = useState(false);
-  const trackRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const autoScrollTweenRef = useRef<gsap.core.Tween | null>(null);
+  const pauseTimeoutRef = useRef<number | null>(null);
 
   if (!results.length) return null;
 
-  // Duplicate cards enough times so the strip is always wider than viewport
-  // We use 4 copies so even with 1-2 cards there's always content visible
-  const copies = Math.max(4, Math.ceil(16 / results.length));
-  const allCards = Array.from({ length: copies }, (_, copyIdx) =>
-    results.map((result, i) => (
-      <DiplomaCard
-        key={`copy${copyIdx}-${result.id}-${i}`}
-        result={result}
-        t={t}
-        onOpen={setSelected}
-      />
-    ))
-  ).flat();
+  // Duplicate cards exactly 3 times for seamless wrapping
+  const duplicatedCards = [
+    ...results.map((result, i) => (
+      <DiplomaCard key={`set1-${result.id}-${i}`} result={result} t={t} onOpen={setSelected} />
+    )),
+    ...results.map((result, i) => (
+      <DiplomaCard key={`set2-${result.id}-${i}`} result={result} t={t} onOpen={setSelected} />
+    )),
+    ...results.map((result, i) => (
+      <DiplomaCard key={`set3-${result.id}-${i}`} result={result} t={t} onOpen={setSelected} />
+    )),
+  ];
 
-  // Duration scales with number of cards so speed stays constant (~280px/s per card width)
   const cardWidthPx = 256 + 24; // w-64 + gap-6
   const singleSetWidth = results.length * cardWidthPx;
-  // We animate exactly one copy's width (translateX(-1/copies * 100%))
-  // Duration: singleSetWidth / 120px per second
-  const durationSec = Math.max(8, singleSetWidth / 120);
 
-  // CSS keyframe percent = 100 / copies  (translate exactly one set to the left)
-  const endPercent = (100 / copies).toFixed(4);
+  // Setup GSAP AutoScroll
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
 
-  const animationStyle: React.CSSProperties = {
-    display: "flex",
-    gap: "24px",
-    width: "max-content",
-    willChange: "transform",
-    animation: `results-scroll ${durationSec}s linear infinite`,
-    animationPlayState: paused ? "paused" : "running",
+    // Start in the middle set
+    el.scrollLeft = singleSetWidth;
+
+    const runMarquee = () => {
+      const currentScroll = el.scrollLeft;
+      const targetScroll = singleSetWidth * 2;
+      const remainingDistance = targetScroll - currentScroll;
+      const speed = 55; // pixels per second
+      const duration = remainingDistance / speed;
+
+      autoScrollTweenRef.current = gsap.to(el, {
+        scrollLeft: targetScroll,
+        duration: duration,
+        ease: "none",
+        onComplete: () => {
+          el.scrollLeft = singleSetWidth;
+          runMarquee();
+        },
+      });
+    };
+
+    if (!isPaused) {
+      runMarquee();
+    }
+
+    return () => {
+      autoScrollTweenRef.current?.kill();
+    };
+  }, [results, isPaused, singleSetWidth]);
+
+  // Handle scroll wrapping for manual drags/swipes
+  const handleScrollWrap = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    if (el.scrollLeft >= singleSetWidth * 2) {
+      el.scrollLeft = singleSetWidth;
+    } else if (el.scrollLeft <= 50) {
+      el.scrollLeft = singleSetWidth + el.scrollLeft;
+    }
   };
 
+  // Button manual scroll chevrons
   const scroll = (dir: "left" | "right") => {
-    const el = trackRef.current;
+    const el = scrollContainerRef.current;
     if (!el) return;
-    el.scrollBy({ left: dir === "left" ? -(cardWidthPx) : cardWidthPx, behavior: "smooth" });
+
+    // Pause auto-scroll
+    setIsPaused(true);
+    if (autoScrollTweenRef.current) {
+      autoScrollTweenRef.current.kill();
+    }
+
+    // Clear any pending resume timeout
+    if (pauseTimeoutRef.current) {
+      window.clearTimeout(pauseTimeoutRef.current);
+    }
+
+    const targetX = el.scrollLeft + (dir === "left" ? -cardWidthPx : cardWidthPx);
+
+    // Smoothly step scrollLeft using GSAP
+    gsap.to(el, {
+      scrollLeft: targetX,
+      duration: 0.5,
+      ease: "power2.out",
+      onComplete: () => {
+        handleScrollWrap();
+        // Resume auto-scroll after 2.5 seconds of button inactivity
+        pauseTimeoutRef.current = window.setTimeout(() => {
+          setIsPaused(false);
+        }, 2500);
+      },
+    });
   };
 
   return (
-    <>
-      {/* Inject keyframe dynamically so endPercent is always correct */}
-      <style>{`
-        @keyframes results-scroll {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-${endPercent}%); }
-        }
-      `}</style>
+    <section id="results" className="py-24 overflow-hidden">
+      <div className="mx-auto w-[92%] max-w-7xl">
+        <SectionHeading eyebrow={t("resultsBadge")} title={t("resultsTitle")} description={t("resultsDesc")} />
+      </div>
 
-      <section id="results" className="py-24 overflow-hidden">
-        <div className="mx-auto w-[92%] max-w-7xl">
-          <SectionHeading eyebrow={t("resultsBadge")} title={t("resultsTitle")} description={t("resultsDesc")} />
-        </div>
-
-        {/* Marquee */}
-        <div
-          className="relative mt-14 group"
-          onMouseMove={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onTouchStart={() => setPaused(true)}
-          onTouchEnd={() => setPaused(false)}
+      {/* Marquee Wrapper */}
+      <div
+        className="relative mt-14 group"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
+      >
+        {/* Navigation buttons */}
+        <button
+          onClick={() => scroll("left")}
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex h-11 w-11 items-center justify-center rounded-full border border-caramel/20 bg-white/85 text-caramel-deep shadow-md backdrop-blur-sm transition duration-300 hover:bg-caramel hover:text-white hover:shadow-lg focus:outline-none opacity-0 group-hover:opacity-100 sm:left-6"
+          aria-label="Oldingi"
         >
-          {/* Navigation buttons */}
-          <button
-            onClick={() => scroll("left")}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex h-11 w-11 items-center justify-center rounded-full border border-caramel/20 bg-white/85 text-caramel-deep shadow-md backdrop-blur-sm transition duration-300 hover:bg-caramel hover:text-white hover:shadow-lg focus:outline-none opacity-0 group-hover:opacity-100 sm:left-6"
-            aria-label="Oldingi"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <button
-            onClick={() => scroll("right")}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex h-11 w-11 items-center justify-center rounded-full border border-caramel/20 bg-white/85 text-caramel-deep shadow-md backdrop-blur-sm transition duration-300 hover:bg-caramel hover:text-white hover:shadow-lg focus:outline-none opacity-0 group-hover:opacity-100 sm:right-6"
-            aria-label="Keyingi"
-          >
-            <ChevronRight size={20} />
-          </button>
+          <ChevronLeft size={20} />
+        </button>
+        <button
+          onClick={() => scroll("right")}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex h-11 w-11 items-center justify-center rounded-full border border-caramel/20 bg-white/85 text-caramel-deep shadow-md backdrop-blur-sm transition duration-300 hover:bg-caramel hover:text-white hover:shadow-lg focus:outline-none opacity-0 group-hover:opacity-100 sm:right-6"
+          aria-label="Keyingi"
+        >
+          <ChevronRight size={20} />
+        </button>
 
-          {/* Animated track */}
-          <div
-            className="py-6 px-4 overflow-hidden"
-            style={{ maskImage: "linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)" }}
-          >
-            <div ref={trackRef} style={animationStyle}>
-              {allCards}
-            </div>
+        {/* Scroll Container */}
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScrollWrap}
+          className="flex overflow-x-auto scroll-smooth py-6 px-4 [&::-webkit-scrollbar]:hidden select-none"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          <div className="flex shrink-0 gap-6">
+            {duplicatedCards}
           </div>
-
-          {/* Edge fades */}
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-cream to-transparent z-10" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-cream to-transparent z-10" />
         </div>
 
-        <Modal open={!!selected} onClose={() => setSelected(null)} maxWidth="max-w-2xl" tone="light">
-          {selected && (
-            <div>
-              <div className="mb-4 flex items-center gap-3 pr-10">
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-caramel/15 text-caramel-deep">
-                  <Award size={22} />
-                </span>
-                <div>
-                  <h3 className="font-display text-lg font-bold text-charcoal">{selected.studentName}</h3>
-                  <p className="text-xs font-semibold text-caramel-deep">
-                    {selected.examType} · {selected.score}
-                  </p>
-                </div>
-                <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-jade/12 px-3 py-1 text-[11px] font-semibold text-jade-deep">
-                  <BadgeCheck size={13} /> Tasdiqlangan
-                </span>
+        {/* Edge fades */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-cream to-transparent z-10" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-cream to-transparent z-10" />
+      </div>
+
+      <Modal open={!!selected} onClose={() => setSelected(null)} maxWidth="max-w-2xl" tone="light">
+        {selected && (
+          <div>
+            <div className="mb-4 flex items-center gap-3 pr-10">
+              <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-caramel/15 text-caramel-deep">
+                <Award size={22} />
+              </span>
+              <div>
+                <h3 className="font-display text-lg font-bold text-charcoal">{selected.studentName}</h3>
+                <p className="text-xs font-semibold text-caramel-deep">
+                  {selected.examType} · {selected.score}
+                </p>
               </div>
-              {selected.certificateImage && (
-                <img src={selected.certificateImage} alt="Sertifikat" className="cert-frame mt-2 w-full" />
-              )}
-              {selected.description && (
-                <p className="mt-4 text-sm leading-relaxed text-charcoal-soft">{selected.description}</p>
-              )}
+              <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-jade/12 px-3 py-1 text-[11px] font-semibold text-jade-deep">
+                <BadgeCheck size={13} /> Tasdiqlangan
+              </span>
             </div>
-          )}
-        </Modal>
-      </section>
-    </>
+            {selected.certificateImage && (
+              <img src={selected.certificateImage} alt="Sertifikat" className="cert-frame mt-2 w-full" />
+            )}
+            {selected.description && (
+              <p className="mt-4 text-sm leading-relaxed text-charcoal-soft">{selected.description}</p>
+            )}
+          </div>
+        )}
+      </Modal>
+    </section>
   );
 }

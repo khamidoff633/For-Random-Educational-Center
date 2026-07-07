@@ -17,13 +17,12 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
 
-  const activeCardRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const isCompleted = activeIndex >= images.length;
 
   // Snappy GSAP swipe helper
-  const swipeAway = (directionX: number, velocityY = -40) => {
+  const swipeAway = (directionX: number, velocityY = -30) => {
     if (isAnimating) return;
     setIsAnimating(true);
 
@@ -34,17 +33,17 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       return;
     }
 
-    const exitX = directionX * (window.innerWidth > 768 ? 450 : 320);
-    const exitRot = directionX * 22;
+    const exitX = directionX * (window.innerWidth > 768 ? 480 : 340);
+    const exitRot = directionX * 28;
 
     gsap.to(topCard, {
       x: exitX,
       y: velocityY,
       rotation: exitRot,
       opacity: 0,
-      scale: 0.93,
+      scale: 0.92,
       duration: 0.45,
-      ease: "power2.out",
+      ease: "power3.out",
       onComplete: () => {
         setDragOffset({ x: 0, y: 0 });
         setActiveIndex((prev) => prev + 1);
@@ -53,13 +52,12 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     });
   };
 
-  // Button click backup action
   const handleNextClick = () => {
     const dir = Math.random() > 0.5 ? 1 : -1;
     swipeAway(dir);
   };
 
-  // ─── Drag Event Handlers ─────────────────────────────────────
+  // Coords helper
   const getCoords = (e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
     if ("touches" in e) {
       if (e.touches.length > 0) {
@@ -97,20 +95,18 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       setIsDragging(false);
       const threshold = 110;
 
-      // If dragged past threshold, swipe away. Otherwise snap back.
       if (Math.abs(dragOffset.x) > threshold) {
         const dir = dragOffset.x > 0 ? 1 : -1;
         swipeAway(dir, dragOffset.y);
       } else {
-        // Snap back to original center
         const topCard = cardRefs.current[activeIndex];
         if (topCard) {
           gsap.to(topCard, {
             x: 0,
             y: 0,
             rotation: 0,
-            duration: 0.55,
-            ease: "elastic.out(1, 0.6)",
+            duration: 0.5,
+            ease: "elastic.out(1, 0.65)",
           });
         }
         setDragOffset({ x: 0, y: 0 });
@@ -155,7 +151,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
 
     // Active Card is being dragged
     if (offset === 0 && isDragging) {
-      const rot = dragOffset.x * 0.08; // tilts as dragged
+      const rot = (dragOffset.x / window.innerWidth) * 35; // realistic angle swing
       return {
         transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rot}deg)`,
         zIndex: 50,
@@ -165,18 +161,17 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       };
     }
 
-    // Stack rendering offsets (organic scattering angles)
+    // Stack offsets
     const scale = 1 - offset * 0.045;
     const zIndex = 30 - offset;
     const opacity = 1 - offset * 0.22;
 
-    // Define organic rotation & translate offsets to look scattered
-    const rotList = [0, -3.5, 4.2, -1.8, 2.8];
-    const xList = [0, -8, 6, -3, 5];
-    const yList = [0, 6, 12, 18, 22];
+    const rotList = [0, -3.8, 4.5, -2, 3];
+    const xList = [0, -9, 7, -4, 6];
+    const yList = [0, 8, 14, 20, 24];
 
     const idxKey = index % 5;
-    const rotation = offset === 0 ? 0 : rotList[idxKey] * (1 + offset * 0.15);
+    const rotation = offset === 0 ? 0 : rotList[idxKey] * (1 + offset * 0.12);
     const shiftX = offset === 0 ? 0 : xList[idxKey];
     const shiftY = offset === 0 ? 0 : yList[idxKey];
 
@@ -240,18 +235,32 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                   </span>
                 </div>
               )}
-              
-              {!isCompleted && (
-                <span className="text-xs font-bold text-caramel-deep/80 tracking-wider">
-                  {activeIndex + 1} / {images.length}
-                </span>
-              )}
             </div>
           </div>
 
           {/* Right Interactive Stack Column */}
-          <div className="lg:col-span-7 flex justify-center items-center">
-            <div className="relative w-[300px] h-[225px] sm:w-[420px] sm:h-[315px] flex items-center justify-center">
+          <div className="lg:col-span-7 flex flex-col items-center justify-center">
+            
+            {/* Instagram Stories Style Progress Indicators (Top) */}
+            {!isCompleted && (
+              <div className="flex w-[290px] sm:w-[400px] gap-1.5 mb-6 justify-center">
+                {images.map((_, idx) => (
+                  <div 
+                    key={idx} 
+                    className="h-1.5 rounded-full flex-1 bg-black/5 overflow-hidden"
+                  >
+                    <div 
+                      className="h-full bg-gradient-to-r from-caramel to-caramel-deep transition-all duration-300"
+                      style={{
+                        width: idx < activeIndex ? "100%" : idx === activeIndex ? "50%" : "0%"
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="relative w-[300px] h-[240px] sm:w-[420px] sm:h-[330px] flex items-center justify-center">
               
               {/* Stack Wrapper */}
               {!isCompleted ? (
@@ -267,9 +276,9 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                       onTouchStart={isActive ? handleStart : undefined}
                       style={getCardStyle(idx)}
                     >
-                      {/* Premium Photo Card Design: fine ivory paper border with shadow depth */}
-                      <div className="w-full h-full p-2 sm:p-3 bg-[#fffdf6] border border-caramel/15 rounded-2xl shadow-[0_12px_28px_-8px_rgba(40,25,12,0.18)] transition-shadow duration-300 hover:shadow-[0_20px_40px_-10px_rgba(40,25,12,0.28)]">
-                        <div className="w-full h-full rounded-xl overflow-hidden bg-cream-soft">
+                      {/* Premium Polaroid-inspired Photo Card with clean margins & shadow */}
+                      <div className="w-full h-full p-2.5 pb-7 sm:p-3.5 sm:pb-9 bg-[#fffdf8] border border-black/5 rounded-2xl shadow-[0_12px_30px_-6px_rgba(40,25,12,0.18)] hover:shadow-[0_20px_45px_-8px_rgba(40,25,12,0.28)] transition-shadow duration-300">
+                        <div className="w-full h-full rounded-xl overflow-hidden bg-cream-soft border border-black/5">
                           <img
                             src={src}
                             alt=""
