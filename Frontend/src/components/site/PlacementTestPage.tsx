@@ -1184,7 +1184,7 @@ export default function PlacementTestPage({
       <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/5 blur-[120px] pointer-events-none" />
 
       {/* Main unified workspace container: anchors left and right desk elements relative to the card */}
-      <div className="relative flex items-end justify-center w-full max-w-2xl mx-auto my-auto">
+      <div className={`relative flex items-end justify-center w-full max-w-2xl mx-auto ${isScrollable ? "mt-4 mb-20" : "my-auto"}`}>
         
         {/* Single Candle on the Left */}
         <Candle />
