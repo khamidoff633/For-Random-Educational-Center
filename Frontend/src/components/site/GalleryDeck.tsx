@@ -14,10 +14,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(0);
   
-  // Parallax Tilt states for active card
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-
   const total = images.length;
 
   const handleNext = () => {
@@ -28,13 +25,11 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     setActiveIndex((prev) => (prev - 1 + total) % total);
   };
 
-  // Click direct to card
   const handleCardClick = (index: number) => {
     if (index === activeIndex) return;
     setActiveIndex(index);
   };
 
-  // Drag and Swipe handlers
   const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDragging(true);
     const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
@@ -53,7 +48,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     if (!isDragging) return;
     setIsDragging(false);
     
-    // Swipe threshold (50px)
     if (dragOffset < -50) {
       handleNext();
     } else if (dragOffset > 50) {
@@ -78,90 +72,65 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     };
   }, [isDragging, dragStart, dragOffset]);
 
-  // Active Card 3D Parallax Tilt
-  const handleTiltMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    
-    // Max 12 degrees tilt rotation
-    const rotateY = (x / (rect.width / 2)) * 12;
-    const rotateX = -(y / (rect.height / 2)) * 12;
-    setTilt({ x: rotateY, y: rotateX });
-  };
-
-  const handleTiltLeave = () => {
-    setTilt({ x: 0, y: 0 });
-  };
-
-  // Calculate 3D layout settings for each card index
   const getCardStyle = (index: number): React.CSSProperties => {
-    // Calculate circular distance
     let diff = index - activeIndex;
 
-    // Wrap around for infinite scroll appearance
+    // Wrap around for infinite loop
     if (diff < -total / 2) diff += total;
     if (diff > total / 2) diff -= total;
 
-    // Dynamic offset based on drag progress
-    const dragProgress = dragOffset / 320; // Normalize drag distance
+    const dragProgress = dragOffset / 300;
     const progress = diff - dragProgress;
 
-    // Hidden cards that are far away
     const isVisible = Math.abs(progress) < 2.5;
     if (!isVisible) {
       return {
         opacity: 0,
         pointerEvents: "none",
-        transform: "scale(0.5) translateZ(-300px)",
-        transition: "opacity 0.4s ease, transform 0.4s ease",
+        transform: "translateX(0px) scale(0.6)",
+        zIndex: 0,
       };
     }
 
-    // Responsive spread and scale factor
     const isMobile = window.innerWidth < 768;
-    const spread = isMobile ? 120 : 250; 
-    const zOffset = isMobile ? -140 : -220; 
-
-    // Compute Y-rotation angle to create sferik curve
-    const angle = progress * (isMobile ? 26 : 32); 
+    
+    // Spread distances and scale factors (no 3D Y-rotation to prevent intersection bugs)
+    const spread = isMobile ? 95 : 210; 
+    const scale = 1 - Math.abs(progress) * (isMobile ? 0.15 : 0.12);
     const translateX = progress * spread;
-    const translateZ = -Math.abs(progress) * zOffset - 50;
-    const scale = 1 - Math.abs(progress) * (isMobile ? 0.12 : 0.1);
-
-    // Apply Parallax Tilt on the Active Card
-    const isCenter = index === activeIndex;
-    const tiltX = isCenter ? tilt.y : 0;
-    const tiltY = isCenter ? tilt.x : 0;
+    const opacity = 1 - Math.abs(progress) * 0.45;
+    
+    // Deeper z-index layout for foreground elements
+    const zIndex = 10 - Math.round(Math.abs(progress) * 2);
 
     return {
       position: "absolute",
       left: "50%",
       top: "50%",
-      width: isMobile ? "240px" : "480px",
-      height: isMobile ? "160px" : "320px",
-      marginLeft: isMobile ? "-120px" : "-240px",
-      marginTop: isMobile ? "-80px" : "-160px",
-      transformStyle: "preserve-3d",
-      transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${angle + tiltY}deg) rotateX(${tiltX}deg) scale(${scale})`,
-      opacity: 1 - Math.abs(progress) * 0.45,
-      zIndex: 10 - Math.round(Math.abs(progress)),
-      cursor: isCenter ? (isDragging ? "grabbing" : "grab") : "pointer",
+      width: isMobile ? "260px" : "560px",
+      // Force consistent landscape aspect ratio (aspect-ratio: 1.6 / 1)
+      height: isMobile ? "162px" : "350px",
+      marginLeft: isMobile ? "-130px" : "-280px",
+      marginTop: isMobile ? "-81px" : "-175px",
+      transform: `translateX(${translateX}px) scale(${scale})`,
+      opacity,
+      zIndex,
+      cursor: index === activeIndex ? (isDragging ? "grabbing" : "grab") : "pointer",
       userSelect: "none",
       touchAction: "none",
-      transition: isDragging ? "none" : "transform 0.55s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.55s ease, z-index 0.55s ease",
+      transition: isDragging ? "none" : "transform 0.45s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.45s ease, z-index 0.45s ease",
     };
   };
 
   return (
     <section id="gallery" className="py-24 bg-cream-soft/10 overflow-hidden relative">
-      {/* Light decorative neon blur circles on background */}
-      <div className="absolute top-[10%] left-[15%] w-96 h-96 rounded-full bg-caramel/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[10%] right-[15%] w-96 h-96 rounded-full bg-caramel/5 blur-[120px] pointer-events-none" />
+      {/* Warm soft light backdrops */}
+      <div className="absolute top-[15%] left-[20%] w-[500px] h-[300px] rounded-full bg-caramel/5 blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-[15%] right-[20%] w-[500px] h-[300px] rounded-full bg-caramel/5 blur-[130px] pointer-events-none" />
 
       <div className="mx-auto w-[92%] max-w-7xl relative z-10">
         
-        {/* Header Section */}
+        {/* Header section */}
         <div className="text-center mb-16">
           <span className="inline-block rounded-full border border-caramel/30 bg-caramel/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.25em] text-caramel-deep">
             {t("galleryBadge")}
@@ -178,14 +147,10 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
           </p>
         </div>
 
-        {/* ── 3D CYLINDER CAROUSEL VIEWPORT ── */}
+        {/* ── 2.5D COVERFLOW VIEWPORT ── */}
         <div 
           ref={containerRef}
-          className="relative w-full h-[220px] sm:h-[400px] flex items-center justify-center"
-          style={{
-            perspective: "1400px",
-            transformStyle: "preserve-3d",
-          }}
+          className="relative w-full h-[200px] sm:h-[400px] flex items-center justify-center"
           onMouseDown={handleStart}
           onTouchStart={handleStart}
         >
@@ -195,35 +160,34 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
               <div
                 key={idx}
                 onClick={() => handleCardClick(idx)}
-                onMouseMove={isCenter ? handleTiltMove : undefined}
-                onMouseLeave={isCenter ? handleTiltLeave : undefined}
                 style={getCardStyle(idx)}
-                // Modern tech styling with glowing gold border and high shadow depth
-                className="rounded-2xl bg-charcoal/95 border border-caramel/25 p-2 shadow-[0_20px_50px_rgba(40,25,12,0.35)] hover:shadow-[0_25px_60px_rgba(200,130,50,0.25)] transition-shadow duration-300"
+                // Clean modern slate screen layout with elegant rounded corners & hover scale-up
+                className={`rounded-2xl bg-charcoal border border-caramel/25 p-2 shadow-[0_15px_45px_rgba(40,25,12,0.22)] hover:shadow-[0_20px_50px_rgba(200,120,40,0.18)] transition-all duration-300 ${
+                  isCenter ? "hover:-translate-y-2 border-caramel shadow-[0_20px_50px_rgba(200,120,40,0.25)]" : "opacity-60"
+                }`}
               >
-                {/* Outer Glassmorphic inner-bevel container */}
-                <div className="w-full h-full rounded-xl overflow-hidden bg-black/40 flex items-center justify-center relative">
+                {/* 100% contained display inside the box */}
+                <div className="w-full h-full rounded-xl overflow-hidden bg-black/60 flex items-center justify-center relative">
                   <img
                     src={src}
                     alt=""
                     className="w-full h-full object-contain pointer-events-none"
                     style={{
-                      // Premium image display without sepia filters to preserve dashboard colors
-                      filter: "brightness(1.02) contrast(1.02)",
+                      filter: "brightness(1.01) contrast(1.01)",
                     }}
                   />
-                  {/* Gentle vignette glare mask */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5 pointer-events-none" />
+                  {/* Glare and overlay shading */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/5 pointer-events-none" />
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* ── Carousel Dot Indicators & Swipe Action ── */}
+        {/* ── Dot Indicators & swipe tip ── */}
         <div className="flex flex-col items-center gap-6 mt-12">
           
-          {/* Active indicator dots */}
+          {/* Progress dots */}
           <div className="flex gap-2">
             {images.map((_, idx) => (
               <button
@@ -238,7 +202,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
             ))}
           </div>
 
-          {/* Swipe indicator text / drag instruction */}
+          {/* User instruction */}
           <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-charcoal-soft/50 uppercase tracking-wider">
             <span>
               {t("navGallery") === "Galereya" 
