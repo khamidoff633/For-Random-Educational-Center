@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowRight, BookOpen, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
 import gsap from "gsap";
 import type { UIKey } from "../../i18n";
-import luxuryOpenBook from "../../assets/luxury_open_book.jpg";
 
 interface GalleryDeckProps {
   images: string[];
@@ -10,124 +9,61 @@ interface GalleryDeckProps {
 }
 
 export default function GalleryDeck({ images, t }: GalleryDeckProps) {
-  const [currentPage, setCurrentPage] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState(0);
+  
+  // Parallax Tilt states for active card
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const sheetRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const total = images.length;
 
-  const totalSheets = images.length;
-  const isCompleted = currentPage >= totalSheets;
-
-  const flipPage = () => {
-    if (isAnimating || currentPage >= totalSheets) return;
-    setIsAnimating(true);
-
-    const sheet = sheetRefs.current[currentPage];
-    if (!sheet) {
-      setCurrentPage((prev) => prev + 1);
-      setIsAnimating(false);
-      return;
-    }
-
-    const shadowFront = sheet.querySelector(".page-shadow-front");
-    const shadowBack = sheet.querySelector(".page-shadow-back");
-
-    const tl = gsap.timeline({
-      onComplete: () => {
-        setCurrentPage((prev) => prev + 1);
-        setIsAnimating(false);
-        setDragOffset({ x: 0, y: 0 });
-      }
-    });
-
-    // 3D bend flip animation mimicking physical page weight
-    tl.to(sheet, {
-      rotationY: -180,
-      z: 50,
-      duration: 1.05,
-      ease: "power2.inOut",
-    });
-
-    tl.to(sheet, {
-      z: 0,
-      duration: 0.15,
-      ease: "power1.out"
-    }, "-=0.15");
-
-    if (shadowFront) {
-      tl.to(shadowFront, {
-        opacity: 0.5,
-        duration: 0.5,
-        ease: "power2.in"
-      }, 0);
-    }
-
-    if (shadowBack) {
-      tl.fromTo(shadowBack, 
-        { opacity: 0.6 },
-        { opacity: 0, duration: 0.5, ease: "power2.out" },
-        0.5
-      );
-    }
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev + 1) % total);
   };
 
-  const getCoords = (e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
-    if ("touches" in e) {
-      if (e.touches.length > 0) {
-        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      }
-      if ("changedTouches" in e && e.changedTouches.length > 0) {
-        return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
-      }
-    }
-    if ("clientX" in e) {
-      return { x: e.clientX, y: e.clientY };
-    }
-    return { x: 0, y: 0 };
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev - 1 + total) % total);
   };
 
+  // Click direct to card
+  const handleCardClick = (index: number) => {
+    if (index === activeIndex) return;
+    setActiveIndex(index);
+  };
+
+  // Drag and Swipe handlers
   const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
-    if (isAnimating || isCompleted) return;
-    const coords = getCoords(e);
-    setDragStart(coords);
-    setDragOffset({ x: 0, y: 0 });
     setIsDragging(true);
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    setDragStart(clientX);
+    setDragOffset(0);
+  };
+
+  const handleMove = (e: MouseEvent | TouchEvent) => {
+    if (!isDragging) return;
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const offset = clientX - dragStart;
+    setDragOffset(offset);
+  };
+
+  const handleEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    
+    // Swipe threshold (50px)
+    if (dragOffset < -50) {
+      handleNext();
+    } else if (dragOffset > 50) {
+      handlePrev();
+    }
+    setDragOffset(0);
   };
 
   useEffect(() => {
     if (!isDragging) return;
-
-    const handleMove = (e: MouseEvent | TouchEvent) => {
-      const coords = getCoords(e);
-      const dx = coords.x - dragStart.x;
-      const dy = coords.y - dragStart.y;
-      setDragOffset({ x: dx, y: dy });
-    };
-
-    const handleEnd = () => {
-      setIsDragging(false);
-
-      const distance = Math.sqrt(dragOffset.x * dragOffset.x + dragOffset.y * dragOffset.y);
-      const clickThreshold = 6;
-
-      if (distance < clickThreshold || dragOffset.x < -60) {
-        flipPage();
-      } else {
-        const sheet = sheetRefs.current[currentPage];
-        if (sheet) {
-          gsap.to(sheet, {
-            rotationY: 0,
-            z: 0,
-            duration: 0.5,
-            ease: "power2.out",
-          });
-        }
-        setDragOffset({ x: 0, y: 0 });
-      }
-    };
 
     window.addEventListener("mousemove", handleMove, { passive: true });
     window.addEventListener("mouseup", handleEnd);
@@ -140,253 +76,181 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       window.removeEventListener("touchmove", handleMove);
       window.removeEventListener("touchend", handleEnd);
     };
-  }, [isDragging, dragStart, dragOffset, currentPage]);
+  }, [isDragging, dragStart, dragOffset]);
 
+  // Active Card 3D Parallax Tilt
+  const handleTiltMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    
+    // Max 12 degrees tilt rotation
+    const rotateY = (x / (rect.width / 2)) * 12;
+    const rotateX = -(y / (rect.height / 2)) * 12;
+    setTilt({ x: rotateY, y: rotateX });
+  };
+
+  const handleTiltLeave = () => {
+    setTilt({ x: 0, y: 0 });
+  };
+
+  // Calculate 3D layout settings for each card index
   const getCardStyle = (index: number): React.CSSProperties => {
-    const offset = index - currentPage;
+    // Calculate circular distance
+    let diff = index - activeIndex;
 
-    if (offset < 0) {
+    // Wrap around for infinite scroll appearance
+    if (diff < -total / 2) diff += total;
+    if (diff > total / 2) diff -= total;
+
+    // Dynamic offset based on drag progress
+    const dragProgress = dragOffset / 320; // Normalize drag distance
+    const progress = diff - dragProgress;
+
+    // Hidden cards that are far away
+    const isVisible = Math.abs(progress) < 2.5;
+    if (!isVisible) {
       return {
-        pointerEvents: "none",
         opacity: 0,
-        transform: "scale(0.9) translateY(-30px)",
-        zIndex: 0,
+        pointerEvents: "none",
+        transform: "scale(0.5) translateZ(-300px)",
+        transition: "opacity 0.4s ease, transform 0.4s ease",
       };
     }
 
-    if (offset === 0 && isDragging) {
-      const rot = (dragOffset.x / window.innerWidth) * 30;
-      return {
-        position: "absolute",
-        left: "51.0%",
-        width: "40.5%",
-        top: "8.0%",
-        height: "84%",
-        transformOrigin: "left center",
-        transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rot}deg)`,
-        zIndex: 50,
-        cursor: "grabbing",
-        userSelect: "none",
-        touchAction: "none",
-      };
-    }
+    // Responsive spread and scale factor
+    const isMobile = window.innerWidth < 768;
+    const spread = isMobile ? 120 : 250; 
+    const zOffset = isMobile ? -140 : -220; 
 
-    const scale = 1 - offset * 0.005;
-    const zIndex = 35 - index;
-    const opacity = offset === 0 ? 1 : 0;
+    // Compute Y-rotation angle to create sferik curve
+    const angle = progress * (isMobile ? 26 : 32); 
+    const translateX = progress * spread;
+    const translateZ = -Math.abs(progress) * zOffset - 50;
+    const scale = 1 - Math.abs(progress) * (isMobile ? 0.12 : 0.1);
+
+    // Apply Parallax Tilt on the Active Card
+    const isCenter = index === activeIndex;
+    const tiltX = isCenter ? tilt.y : 0;
+    const tiltY = isCenter ? tilt.x : 0;
 
     return {
       position: "absolute",
-      left: "51.0%",
-      width: "40.5%",
-      top: "8.0%",
-      height: "84%",
-      transformOrigin: "left center",
-      transform: `scale(${scale})`,
-      opacity,
-      zIndex,
-      cursor: "grab",
+      left: "50%",
+      top: "50%",
+      width: isMobile ? "240px" : "480px",
+      height: isMobile ? "160px" : "320px",
+      marginLeft: isMobile ? "-120px" : "-240px",
+      marginTop: isMobile ? "-80px" : "-160px",
+      transformStyle: "preserve-3d",
+      transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${angle + tiltY}deg) rotateX(${tiltX}deg) scale(${scale})`,
+      opacity: 1 - Math.abs(progress) * 0.45,
+      zIndex: 10 - Math.round(Math.abs(progress)),
+      cursor: isCenter ? (isDragging ? "grabbing" : "grab") : "pointer",
       userSelect: "none",
       touchAction: "none",
+      transition: isDragging ? "none" : "transform 0.55s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.55s ease, z-index 0.55s ease",
     };
   };
 
   return (
     <section id="gallery" className="py-24 bg-cream-soft/10 overflow-hidden relative">
-      <div className="mx-auto w-[92%] max-w-7xl relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
-          {/* Left Text Column - 4 cols */}
-          <div className="lg:col-span-4 text-center lg:text-left">
-            <span className="inline-block rounded-full border border-caramel/30 bg-caramel/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.25em] text-caramel-deep">
-              {t("galleryBadge")}
-            </span>
-            <h2 className="font-display mt-4 text-3xl font-extrabold tracking-tight text-charcoal sm:text-4xl">
-              {t("galleryTitle")}
-            </h2>
-            <p className="mt-4 text-sm sm:text-base text-charcoal-soft font-medium leading-relaxed max-w-lg mx-auto lg:mx-0">
-              {t("navGallery") === "Galereya" 
-                ? "Markazimiz hayoti, o'quvchilarimiz yutuqlari va o'quv jarayonidan jonli foto-lavhalarni varaqlang." 
-                : t("navGallery") === "Галерея"
-                ? "Пролистайте живые фотографии из жизни нашего центра, успехов студентов и учебного процесса."
-                : "Browse through live photo moments from our center life, student achievements, and study process."}
-            </p>
+      {/* Light decorative neon blur circles on background */}
+      <div className="absolute top-[10%] left-[15%] w-96 h-96 rounded-full bg-caramel/5 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[10%] right-[15%] w-96 h-96 rounded-full bg-caramel/5 blur-[120px] pointer-events-none" />
 
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              {!isCompleted ? (
-                <button
-                  onClick={flipPage}
-                  disabled={isAnimating}
-                  className="btn-primary rounded-full px-7 py-3 text-sm flex items-center gap-2 group shadow-soft"
-                >
-                  <span>{t("navGallery") === "Galereya" ? "Varaqlash" : t("navGallery") === "Галерея" ? "Листать" : "Flip Page"}</span>
-                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-                </button>
-              ) : (
-                <div className="flex items-center gap-2 text-xs font-bold text-charcoal-soft/75 bg-black/5 px-4 py-2 rounded-full">
-                  <CheckCircle2 size={14} className="text-jade-deep" />
-                  <span>
-                    {t("navGallery") === "Galereya" 
-                      ? "Barcha rasmlar ko'rildi" 
-                      : t("navGallery") === "Галерея" 
-                      ? "Все фото просмотрены" 
-                      : "All photos viewed"}
-                  </span>
+      <div className="mx-auto w-[92%] max-w-7xl relative z-10">
+        
+        {/* Header Section */}
+        <div className="text-center mb-16">
+          <span className="inline-block rounded-full border border-caramel/30 bg-caramel/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.25em] text-caramel-deep">
+            {t("galleryBadge")}
+          </span>
+          <h2 className="font-display mt-4 text-3xl font-extrabold tracking-tight text-charcoal sm:text-4xl">
+            {t("galleryTitle")}
+          </h2>
+          <p className="mt-4 text-sm sm:text-base text-charcoal-soft font-medium leading-relaxed max-w-lg mx-auto">
+            {t("navGallery") === "Galereya" 
+              ? "Markazimiz hayoti, o'quvchilarimiz yutuqlari va o'quv jarayonidan jonli foto-lavhalarni varaqlang." 
+              : t("navGallery") === "Галерея"
+              ? "Пролистайте живые фотографии из жизни нашего центра, успехов студентов и учебного процесса."
+              : "Browse through live photo moments from our center life, student achievements, and study process."}
+          </p>
+        </div>
+
+        {/* ── 3D CYLINDER CAROUSEL VIEWPORT ── */}
+        <div 
+          ref={containerRef}
+          className="relative w-full h-[220px] sm:h-[400px] flex items-center justify-center"
+          style={{
+            perspective: "1400px",
+            transformStyle: "preserve-3d",
+          }}
+          onMouseDown={handleStart}
+          onTouchStart={handleStart}
+        >
+          {images.map((src, idx) => {
+            const isCenter = idx === activeIndex;
+            return (
+              <div
+                key={idx}
+                onClick={() => handleCardClick(idx)}
+                onMouseMove={isCenter ? handleTiltMove : undefined}
+                onMouseLeave={isCenter ? handleTiltLeave : undefined}
+                style={getCardStyle(idx)}
+                // Modern tech styling with glowing gold border and high shadow depth
+                className="rounded-2xl bg-charcoal/95 border border-caramel/25 p-2 shadow-[0_20px_50px_rgba(40,25,12,0.35)] hover:shadow-[0_25px_60px_rgba(200,130,50,0.25)] transition-shadow duration-300"
+              >
+                {/* Outer Glassmorphic inner-bevel container */}
+                <div className="w-full h-full rounded-xl overflow-hidden bg-black/40 flex items-center justify-center relative">
+                  <img
+                    src={src}
+                    alt=""
+                    className="w-full h-full object-contain pointer-events-none"
+                    style={{
+                      // Premium image display without sepia filters to preserve dashboard colors
+                      filter: "brightness(1.02) contrast(1.02)",
+                    }}
+                  />
+                  {/* Gentle vignette glare mask */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5 pointer-events-none" />
                 </div>
-              )}
-              
-              {!isCompleted && (
-                <span className="text-xs font-bold text-caramel-deep/80 tracking-wider">
-                  {currentPage + 1} / {totalSheets}
-                </span>
-              )}
-            </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ── Carousel Dot Indicators & Swipe Action ── */}
+        <div className="flex flex-col items-center gap-6 mt-12">
+          
+          {/* Active indicator dots */}
+          <div className="flex gap-2">
+            {images.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveIndex(idx)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  idx === activeIndex 
+                    ? "w-8 bg-gradient-to-r from-caramel to-caramel-deep" 
+                    : "w-2 bg-charcoal/15 hover:bg-charcoal/30"
+                }`}
+              />
+            ))}
           </div>
 
-          {/* Right Interactive Column - 8 cols (Expanded Book Container) */}
-          <div className="lg:col-span-8 flex justify-center items-center">
-            
-            {/* Large 3D Open Book container without margins, matches cropped image 1.52 aspect ratio */}
-            <div 
-              className="relative w-full max-w-[340px] aspect-[1.52/1] sm:max-w-[820px] sm:aspect-[1.52/1] select-none"
-              style={{
-                backgroundImage: `url(${luxuryOpenBook})`,
-                backgroundSize: "100% 100%",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-                perspective: "1600px"
-              }}
-            >
-
-              {/* LEFT PAGE SURFACE OVERLAY */}
-              <div 
-                className="absolute overflow-hidden flex items-center justify-center p-1 sm:p-2.5"
-                style={{
-                  left: "8.5%",
-                  width: "40.5%",
-                  top: "8.0%",
-                  height: "84%",
-                }}
-              >
-                {currentPage > 0 && currentPage <= images.length ? (
-                  <div className="w-full h-full rounded overflow-hidden relative">
-                    <img 
-                      src={images[currentPage - 1]} 
-                      alt="" 
-                      className="w-full h-full object-contain" 
-                      style={{ filter: "sepia(0.06) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-black/5 pointer-events-none" />
-                  </div>
-                ) : (
-                  <div className="text-center max-w-[100px] sm:max-w-xs px-1 pointer-events-none select-none opacity-80 scale-[0.8] sm:scale-100">
-                    <BookOpen size={22} className="mx-auto text-caramel-deep mb-2.5 animate-pulse" />
-                    <h4 className="font-display text-[9px] sm:text-xs font-bold text-charcoal uppercase">
-                      Apex Academy
-                    </h4>
-                    <p className="text-[7px] sm:text-[9px] font-bold text-caramel-deep mt-0.5">
-                      {t("navGallery") === "Galereya" ? "Foto Albom" : t("navGallery") === "Галерея" ? "Фото Альбом" : "Photo Album"}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* RIGHT PAGE SURFACE OVERLAY (Upcoming background page layer) */}
-              <div 
-                className="absolute overflow-hidden flex items-center justify-center p-1 sm:p-2.5"
-                style={{
-                  left: "51.0%",
-                  width: "40.5%",
-                  top: "8.0%",
-                  height: "84%",
-                }}
-              >
-                {currentPage < totalSheets - 1 ? (
-                  <div className="w-full h-full rounded overflow-hidden relative">
-                    <img 
-                      src={images[currentPage + 1]} 
-                      alt="" 
-                      className="w-full h-full object-contain" 
-                      style={{ filter: "sepia(0.08) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-black/5 pointer-events-none" />
-                  </div>
-                ) : (
-                  <div className="text-center max-w-[100px] sm:max-w-xs px-1 pointer-events-none select-none opacity-50 scale-[0.8] sm:scale-100">
-                    <CheckCircle2 size={20} className="mx-auto text-jade-deep mb-2" />
-                    <span className="font-display text-[8px] sm:text-[9px] font-bold text-charcoal-soft uppercase">
-                      {t("navGallery") === "Galereya" ? "Albom yakunlandi" : t("navGallery") === "Галерея" ? "Альбом завершен" : "End of Album"}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* ── 3D FLIPPING SHEETS OVERLAY ── */}
-              {!isCompleted && images.map((src, idx) => {
-                if (idx < currentPage) return null;
-                const isTop = idx === currentPage;
-
-                return (
-                  <div
-                    key={idx}
-                    ref={(el) => {
-                      sheetRefs.current[idx] = el;
-                    }}
-                    onMouseDown={isTop ? handleStart : undefined}
-                    onTouchStart={isTop ? handleStart : undefined}
-                    style={getCardStyle(idx)}
-                  >
-                    
-                    {/* FRONT FACE (Visible on the right side) */}
-                    <div 
-                      className="absolute inset-0 bg-[#fffcf6] rounded-r border-l border-black/5 p-1 sm:p-2.5 flex items-center justify-center backface-hidden"
-                      style={{
-                        backgroundImage: "linear-gradient(to left, #ebdcb7 0%, #fdf6e2 8%, #fffdf8 100%)",
-                      }}
-                    >
-                      <div className="page-shadow-front absolute inset-0 bg-black opacity-0 pointer-events-none z-10" />
-
-                      <div className="w-full h-full rounded overflow-hidden relative">
-                        <img 
-                          src={src} 
-                          alt="" 
-                          className="w-full h-full object-contain pointer-events-none"
-                          style={{ filter: "sepia(0.08) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-black/5 pointer-events-none" />
-                      </div>
-                    </div>
-
-                    {/* BACK FACE (Visible on the left side after flipped) */}
-                    <div 
-                      className="absolute inset-0 bg-[#fffcf6] rounded-l border-r border-black/5 p-1 sm:p-2.5 flex items-center justify-center backface-hidden"
-                      style={{
-                        transform: "rotateY(180deg)",
-                        backgroundImage: "linear-gradient(to right, #ebdcb7 0%, #fdf6e2 8%, #fffdf8 100%)",
-                      }}
-                    >
-                      <div className="page-shadow-back absolute inset-0 bg-black opacity-0 pointer-events-none z-10" />
-
-                      <div className="w-full h-full rounded overflow-hidden relative">
-                        <img 
-                          src={src} 
-                          alt="" 
-                          className="w-full h-full object-contain pointer-events-none"
-                          style={{ filter: "sepia(0.08) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-black/5 pointer-events-none" />
-                      </div>
-                    </div>
-
-                  </div>
-                );
-              })}
-
-            </div>
-
+          {/* Swipe indicator text / drag instruction */}
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-charcoal-soft/50 uppercase tracking-wider">
+            <span>
+              {t("navGallery") === "Galereya" 
+                ? "Aylantirish uchun sudrang yoki kliklang" 
+                : t("navGallery") === "Галерея" 
+                ? "Проведите или нажмите для прокрутки" 
+                : "Drag or click to rotate"}
+            </span>
           </div>
 
         </div>
+
       </div>
     </section>
   );
