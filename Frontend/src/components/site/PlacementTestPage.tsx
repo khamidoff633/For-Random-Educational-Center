@@ -1098,11 +1098,13 @@ export default function PlacementTestPage({
       onMouseLeave={handleMouseLeave}
       className="min-h-screen text-charcoal py-12 px-4 sm:px-6 relative overflow-hidden flex items-center justify-center"
       style={{
+        backgroundColor: "#0d0703", // prevents white flashes during image load
         backgroundImage: `linear-gradient(to bottom right, rgba(20,12,6,0.84), rgba(35,22,12,0.80), rgba(15,8,4,0.88)), url(${libraryDeskBg})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-        perspective: "1200px" // critical for true 3d CSS transforms
+        perspective: "1200px", // critical for true 3d CSS transforms
+        overscrollBehavior: "none" // completely disables iOS/macOS scroll bouncing white page gap
       }}
     >
       {/* Global Ambient light bleed from left candle */}
