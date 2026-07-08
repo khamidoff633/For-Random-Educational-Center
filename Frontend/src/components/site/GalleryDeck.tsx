@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import gsap from "gsap";
 import type { UIKey } from "../../i18n";
 
 interface GalleryDeckProps {
@@ -14,6 +13,9 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(0);
   
+  // Flicker-Free 3D Parallax Tilt state (tracked relative to the entire container viewport)
+  const [containerTilt, setContainerTilt] = useState({ x: 0, y: 0 });
+
   const containerRef = useRef<HTMLDivElement>(null);
   const total = images.length;
 
@@ -72,6 +74,23 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     };
   }, [isDragging, dragStart, dragOffset]);
 
+  // Viewport-based MouseMove Tilt to completely prevent active card shaking/flickering
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isDragging) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    
+    // Normalized tilt angles (Max 8 degrees)
+    const rotateY = (x / (rect.width / 2)) * 8;
+    const rotateX = -(y / (rect.height / 2)) * 8;
+    setContainerTilt({ x: rotateY, y: rotateX });
+  };
+
+  const handleMouseLeave = () => {
+    setContainerTilt({ x: 0, y: 0 });
+  };
+
   const getCardStyle = (index: number): React.CSSProperties => {
     let diff = index - activeIndex;
 
@@ -82,8 +101,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     const dragProgress = dragOffset / 300;
     const progress = diff - dragProgress;
 
-    // CRITICAL CLEANUP: Only show 3 cards (Active, Left neighbor, Right neighbor).
-    // All other cards are completely hidden (opacity: 0) to avoid stacked clutter!
     const isVisible = Math.abs(progress) < 1.6;
     if (!isVisible) {
       return {
@@ -96,17 +113,32 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
 
     const isMobile = window.innerWidth < 768;
     
-    // Spread distances tailored to eliminate messy card overlaps
+    // Spread math
     const spread = isMobile ? 140 : 340; 
     const scale = 1 - Math.abs(progress) * (isMobile ? 0.22 : 0.18);
     const translateX = progress * spread;
-    
-    // Soft fade for background cards
     const opacity = 1 - Math.abs(progress) * 0.55;
     
-    // Minimal organic Z-rotation (tilt) for realistic desk paper feel
-    const rotateZ = progress * 3.2;
+    const isCenter = index === activeIndex;
+
+    // Elastic Physics: side cards lean/sway organically as active card is dragged
+    const elasticSway = isCenter ? 0 : (dragOffset / 100) * 1.8;
+    const rotateZ = progress * 3.5 + elasticSway;
     const zIndex = 10 - Math.round(Math.abs(progress) * 2);
+
+    // 3D Parallax Tilt (Only applied to center card)
+    const tiltX = isCenter ? containerTilt.y : 0;
+    const tiltY = isCenter ? containerTilt.x : 0;
+
+    // Lift center card on hover/drag
+    const liftY = isCenter ? (isDragging ? -15 : -8) : 0;
+
+    // Dynamic Soya Depth (Increases when dragging, floats realistic shadow)
+    const shadowStyle = isCenter 
+      ? (isDragging 
+          ? "0 35px 65px -12px rgba(200, 120, 40, 0.26), 0 10px 22px -5px rgba(200, 120, 40, 0.1)" 
+          : "0 22px 45px -8px rgba(200, 120, 40, 0.18), 0 5px 15px -3px rgba(40, 25, 12, 0.06)")
+      : "0 10px 25px -6px rgba(40, 25, 12, 0.08)";
 
     return {
       position: "absolute",
@@ -116,22 +148,27 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       height: isMobile ? "131px" : "250px",
       marginLeft: isMobile ? "-105px" : "-200px",
       marginTop: isMobile ? "-65px" : "-125px",
-      transform: `translateX(${translateX}px) scale(${scale}) rotate(${rotateZ}deg)`,
+      transformStyle: "preserve-3d",
+      transform: `translateX(${translateX}px) translateY(${liftY}px) scale(${scale}) rotateZ(${rotateZ}deg) rotateY(${tiltY}deg) rotateX(${tiltX}deg)`,
       opacity,
       zIndex,
-      cursor: index === activeIndex ? (isDragging ? "grabbing" : "grab") : "pointer",
+      boxShadow: shadowStyle,
+      cursor: isCenter ? (isDragging ? "grabbing" : "grab") : "pointer",
       userSelect: "none",
       touchAction: "none",
-      // Premium snappy elastic snap transition
       transition: isDragging 
         ? "none" 
-        : "transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.65s ease, z-index 0.65s ease",
+        : "transform 0.65s cubic-bezier(0.25, 0.8, 0.25, 1.15), opacity 0.65s ease, z-index 0.65s ease, box-shadow 0.45s ease",
     };
   };
 
+  // Glare shift based on active tilt
+  const glareX = -containerTilt.x * 6;
+  const glareY = containerTilt.y * 6;
+
   return (
     <section id="gallery" className="py-24 bg-cream-soft/10 overflow-hidden relative">
-      {/* Dynamic warm glow lights */}
+      {/* Background glow lamps */}
       <div className="absolute top-[10%] left-[20%] w-96 h-96 rounded-full bg-caramel/5 blur-[130px] pointer-events-none" />
       <div className="absolute bottom-[10%] right-[20%] w-96 h-96 rounded-full bg-caramel/5 blur-[130px] pointer-events-none" />
 
@@ -154,12 +191,18 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
           </p>
         </div>
 
-        {/* ── 2.5D COVERFLOW VIEWPORT ── */}
+        {/* ── 2.5D COVERFLOW VIEWPORT (Handles mouseMove for stable Parallax Tilt) ── */}
         <div 
           ref={containerRef}
           className="relative w-full h-[180px] sm:h-[320px] flex items-center justify-center"
           onMouseDown={handleStart}
           onTouchStart={handleStart}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          style={{
+            perspective: "1200px",
+            transformStyle: "preserve-3d"
+          }}
         >
           {images.map((src, idx) => {
             const isCenter = idx === activeIndex;
@@ -168,17 +211,16 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                 key={idx}
                 onClick={() => handleCardClick(idx)}
                 style={getCardStyle(idx)}
-                // Clean white card format, caramel border, deep shadow
-                className={`rounded-2xl bg-white border border-caramel/20 p-3 shadow-[0_12px_35px_-6px_rgba(40,25,12,0.12)] hover:shadow-[0_18px_45px_-8px_rgba(200,120,40,0.16)] transition-all duration-300 ${
-                  isCenter ? "hover:-translate-y-2 border-caramel shadow-[0_18px_40px_-6px_rgba(200,120,40,0.2)]" : "opacity-50"
+                // Clean cream card frame styling
+                className={`rounded-2xl bg-[#fffdf8] border border-caramel/20 p-3 transition-colors duration-300 relative group ${
+                  isCenter ? "border-caramel/40" : "opacity-50"
                 }`}
               >
-                {/* Image fits naturally inside white card, no distortion or black margins */}
-                <div className="w-full h-full rounded-xl overflow-hidden bg-[#faf8f4] flex items-center justify-center relative border border-black/5">
+                {/* Image backdrop container */}
+                <div className="w-full h-full rounded-xl overflow-hidden bg-cream-soft/20 flex items-center justify-center relative border border-black/5">
                   <img
                     src={src}
                     alt=""
-                    // object-contain ensures absolute original aspect ratio with zero cropping/stretching
                     className="w-full h-full object-contain pointer-events-none p-1 sm:p-2"
                     style={{
                       filter: "brightness(1.01) contrast(1.01)",
@@ -186,15 +228,25 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                   />
                   <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-white/10 pointer-events-none" />
                 </div>
+
+                {/* DYNAMIC SHIFTING GLARE OVERLAY (Only visible on active centered card on hover) */}
+                {isCenter && (
+                  <div 
+                    className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
+                    style={{
+                      background: `radial-gradient(circle at ${50 + glareX}% ${50 + glareY}%, rgba(255,255,255,0.18) 0%, transparent 65%)`,
+                      mixBlendMode: "overlay"
+                    }}
+                  />
+                )}
               </div>
             );
           })}
         </div>
 
-        {/* ── Progress Indicators & Swipe tip ── */}
+        {/* ── Dots indicator ── */}
         <div className="flex flex-col items-center gap-6 mt-12">
           
-          {/* Progress Dots */}
           <div className="flex gap-2">
             {images.map((_, idx) => (
               <button
@@ -209,7 +261,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
             ))}
           </div>
 
-          {/* Swipe indicator text */}
           <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-charcoal-soft/50 uppercase tracking-wider">
             <span>
               {t("navGallery") === "Galereya" 
