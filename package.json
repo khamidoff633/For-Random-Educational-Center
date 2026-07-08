@@ -23,9 +23,7 @@
     "qrcode.react": "^4.1.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
-    "vite": "^6.2.3"
-  },
-  "optionalDependencies": {
+    "vite": "^6.2.3",
     "pg": "^8.22.0"
   },
   "devDependencies": {
