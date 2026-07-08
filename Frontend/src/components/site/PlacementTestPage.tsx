@@ -689,8 +689,9 @@ export default function PlacementTestPage({
       document.body.style.overscrollBehavior = "none";
       document.documentElement.style.overscrollBehavior = "none";
     } else {
-      // Result step: allows standard scrolling on body, prevents double scrollbars on html
-      document.body.style.overflow = "auto"; // body handles the single clean scrollbar
+      // Result step: allows standard vertical scrolling, but blocks horizontal scrollbar and HTML duplicate
+      document.body.style.overflowY = "auto"; // handles the clean single vertical scrollbar
+      document.body.style.overflowX = "hidden"; // completely removes the horizontal scrollbar (orange bar)
       document.documentElement.style.overflow = "visible"; // blocks any duplicate webkit/HTML scrollbars
       document.body.style.overscrollBehavior = "none";
       document.documentElement.style.overscrollBehavior = "none";
@@ -700,6 +701,8 @@ export default function PlacementTestPage({
       document.body.style.backgroundColor = originalBodyBg;
       document.documentElement.style.backgroundColor = originalHtmlBg;
       document.body.style.overflow = originalBodyOverflow;
+      document.body.style.overflowX = "";
+      document.body.style.overflowY = "";
       document.documentElement.style.overflow = originalHtmlOverflow;
       document.body.style.overscrollBehavior = originalBodyOverscroll;
       document.documentElement.style.overscrollBehavior = originalHtmlOverscroll;
@@ -1184,7 +1187,7 @@ export default function PlacementTestPage({
       <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-500/5 blur-[120px] pointer-events-none" />
 
       {/* Main unified workspace container: anchors left and right desk elements relative to the card */}
-      <div className={`relative flex items-end justify-center w-full max-w-2xl mx-auto ${isScrollable ? "mt-4 mb-20" : "my-auto"}`}>
+      <div className={`relative flex items-end justify-center w-full max-w-2xl mx-auto ${isScrollable ? "mt-4 mb-4" : "my-auto"}`}>
         
         {/* Single Candle on the Left */}
         <Candle />
