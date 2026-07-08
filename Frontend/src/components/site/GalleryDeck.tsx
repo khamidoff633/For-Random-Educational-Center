@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { ArrowRight, BookOpen, CheckCircle2 } from "lucide-react";
 import gsap from "gsap";
 import type { UIKey } from "../../i18n";
-import realisticOpenBook from "../../assets/realistic_open_book.jpg";
+import luxuryOpenBook from "../../assets/luxury_open_book.jpg";
 
 interface GalleryDeckProps {
   images: string[];
@@ -142,7 +142,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     };
   }, [isDragging, dragStart, dragOffset, currentPage]);
 
-  // Stack styles when being dragged
   const getCardStyle = (index: number): React.CSSProperties => {
     const offset = index - currentPage;
 
@@ -159,10 +158,10 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       const rot = (dragOffset.x / window.innerWidth) * 30;
       return {
         position: "absolute",
-        left: "50.8%",
-        width: "37.5%",
-        top: "9.5%",
-        height: "81%",
+        left: "50.7%",
+        width: "34.5%",
+        top: "10%",
+        height: "80%",
         transformOrigin: "left center",
         transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rot}deg)`,
         zIndex: 50,
@@ -174,14 +173,14 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
 
     const scale = 1 - offset * 0.005;
     const zIndex = 35 - index;
-    const opacity = offset === 0 ? 1 : 0; // stack hidden underneath background sheet layers
+    const opacity = offset === 0 ? 1 : 0;
 
     return {
       position: "absolute",
-      left: "50.8%",
-      width: "37.5%",
-      top: "9.5%",
-      height: "81%",
+      left: "50.7%",
+      width: "34.5%",
+      top: "10%",
+      height: "80%",
       transformOrigin: "left center",
       transform: `scale(${scale})`,
       opacity,
@@ -197,8 +196,8 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       <div className="mx-auto w-[92%] max-w-7xl relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Left Text Column */}
-          <div className="lg:col-span-5 text-center lg:text-left">
+          {/* Left Text Column - Adjusted size (4 cols) to fit larger book */}
+          <div className="lg:col-span-4 text-center lg:text-left">
             <span className="inline-block rounded-full border border-caramel/30 bg-caramel/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.25em] text-caramel-deep">
               {t("galleryBadge")}
             </span>
@@ -244,29 +243,29 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
             </div>
           </div>
 
-          {/* Right Interactive Column (3D OPEN BOOK WITH OVERLAY) */}
-          <div className="lg:col-span-7 flex justify-center items-center">
+          {/* Right Interactive Column - Expanded size (8 cols) for twice larger book */}
+          <div className="lg:col-span-8 flex justify-center items-center">
             
-            {/* 3D OPEN BOOK WRAPPER (Fits over white background perfectly) */}
+            {/* Twice larger 3D Book shell container */}
             <div 
-              className="relative w-full max-w-[320px] aspect-[1.33/1] sm:max-w-[520px] sm:aspect-[1.33/1] select-none"
+              className="relative w-full max-w-[340px] aspect-[1.33/1] sm:max-w-[760px] sm:aspect-[1.33/1] select-none"
               style={{
-                backgroundImage: `url(${realisticOpenBook})`,
+                backgroundImage: `url(${luxuryOpenBook})`,
                 backgroundSize: "100% 100%",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
-                perspective: "1200px" // For 3D sheet rotation
+                perspective: "1500px" // Increased perspective depth for larger scale
               }}
             >
 
               {/* LEFT PAGE SURFACE OVERLAY */}
               <div 
-                className="absolute overflow-hidden flex items-center justify-center p-1 sm:p-2"
+                className="absolute overflow-hidden flex items-center justify-center p-1 sm:p-2.5"
                 style={{
-                  left: "11.2%",
-                  width: "37.5%",
-                  top: "9.5%",
-                  height: "81%",
+                  left: "14.8%",
+                  width: "34.5%",
+                  top: "10%",
+                  height: "80%",
                 }}
               >
                 {currentPage > 0 && currentPage <= images.length ? (
@@ -275,13 +274,13 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                       src={images[currentPage - 1]} 
                       alt="" 
                       className="w-full h-full object-cover" 
-                      style={{ filter: "sepia(0.08) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
+                      style={{ filter: "sepia(0.06) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-black/5 pointer-events-none" />
                   </div>
                 ) : (
                   <div className="text-center max-w-[100px] sm:max-w-xs px-1 pointer-events-none select-none opacity-80 scale-[0.8] sm:scale-100">
-                    <BookOpen size={20} className="mx-auto text-caramel-deep mb-2 animate-pulse" />
+                    <BookOpen size={22} className="mx-auto text-caramel-deep mb-2.5 animate-pulse" />
                     <h4 className="font-display text-[9px] sm:text-xs font-bold text-charcoal uppercase">
                       Apex Academy
                     </h4>
@@ -294,12 +293,12 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
 
               {/* RIGHT PAGE SURFACE OVERLAY (Upcoming background page layer) */}
               <div 
-                className="absolute overflow-hidden flex items-center justify-center p-1 sm:p-2"
+                className="absolute overflow-hidden flex items-center justify-center p-1 sm:p-2.5"
                 style={{
-                  left: "50.8%",
-                  width: "37.5%",
-                  top: "9.5%",
-                  height: "81%",
+                  left: "50.7%",
+                  width: "34.5%",
+                  top: "10%",
+                  height: "80%",
                 }}
               >
                 {currentPage < totalSheets - 1 ? (
@@ -314,7 +313,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                   </div>
                 ) : (
                   <div className="text-center max-w-[100px] sm:max-w-xs px-1 pointer-events-none select-none opacity-50 scale-[0.8] sm:scale-100">
-                    <CheckCircle2 size={18} className="mx-auto text-jade-deep mb-2" />
+                    <CheckCircle2 size={20} className="mx-auto text-jade-deep mb-2" />
                     <span className="font-display text-[8px] sm:text-[9px] font-bold text-charcoal-soft uppercase">
                       {t("navGallery") === "Galereya" ? "Albom yakunlandi" : t("navGallery") === "Галерея" ? "Альбом завершен" : "End of Album"}
                     </span>
@@ -340,7 +339,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                     
                     {/* FRONT FACE (Visible on the right side) */}
                     <div 
-                      className="absolute inset-0 bg-[#fffcf6] rounded-r border-l border-black/5 p-1 sm:p-2 flex items-center justify-center backface-hidden"
+                      className="absolute inset-0 bg-[#fffcf6] rounded-r border-l border-black/5 p-1 sm:p-2.5 flex items-center justify-center backface-hidden"
                       style={{
                         backgroundImage: "linear-gradient(to left, #ebdcb7 0%, #fdf6e2 8%, #fffdf8 100%)",
                       }}
@@ -360,7 +359,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
 
                     {/* BACK FACE (Visible on the left side after flipped) */}
                     <div 
-                      className="absolute inset-0 bg-[#fffcf6] rounded-l border-r border-black/5 p-1 sm:p-2 flex items-center justify-center backface-hidden"
+                      className="absolute inset-0 bg-[#fffcf6] rounded-l border-r border-black/5 p-1 sm:p-2.5 flex items-center justify-center backface-hidden"
                       style={{
                         transform: "rotateY(180deg)",
                         backgroundImage: "linear-gradient(to right, #ebdcb7 0%, #fdf6e2 8%, #fffdf8 100%)",
