@@ -689,9 +689,9 @@ export default function PlacementTestPage({
       document.body.style.overscrollBehavior = "none";
       document.documentElement.style.overscrollBehavior = "none";
     } else {
-      // Result step: allows standard scrolling, but blocks elastic scroll bounce completely
-      document.body.style.overflow = "auto";
-      document.documentElement.style.overflow = "auto";
+      // Result step: allows standard scrolling on body, prevents double scrollbars on html
+      document.body.style.overflow = "auto"; // body handles the single clean scrollbar
+      document.documentElement.style.overflow = "visible"; // blocks any duplicate webkit/HTML scrollbars
       document.body.style.overscrollBehavior = "none";
       document.documentElement.style.overscrollBehavior = "none";
     }
