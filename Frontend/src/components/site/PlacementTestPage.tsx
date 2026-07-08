@@ -667,17 +667,44 @@ export default function PlacementTestPage({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Dynamic document body background color injector (prevents white gap on Safari/Chrome overscroll)
+  const isScrollable = step === "result" || step === "success";
+
+  // Dynamic scroll locker and overscroll bounce blocker
   useEffect(() => {
     const originalBodyBg = document.body.style.backgroundColor;
     const originalHtmlBg = document.documentElement.style.backgroundColor;
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    const originalBodyOverscroll = document.body.style.overscrollBehavior;
+    const originalHtmlOverscroll = document.documentElement.style.overscrollBehavior;
+
+    // Dark brown background to match theme
     document.body.style.backgroundColor = "#0d0703";
     document.documentElement.style.backgroundColor = "#0d0703";
+
+    if (step === "intro" || step === "quiz") {
+      // 100% Locked screen during quiz: no scrolling, no scrollbar, no bouncing
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overscrollBehavior = "none";
+      document.documentElement.style.overscrollBehavior = "none";
+    } else {
+      // Result step: allows standard scrolling, but blocks elastic scroll bounce completely
+      document.body.style.overflow = "auto";
+      document.documentElement.style.overflow = "auto";
+      document.body.style.overscrollBehavior = "none";
+      document.documentElement.style.overscrollBehavior = "none";
+    }
+
     return () => {
       document.body.style.backgroundColor = originalBodyBg;
       document.documentElement.style.backgroundColor = originalHtmlBg;
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.body.style.overscrollBehavior = originalBodyOverscroll;
+      document.documentElement.style.overscrollBehavior = originalHtmlOverscroll;
     };
-  }, []);
+  }, [step]);
 
   // Floating warm dust motes state
   const [dustMotes] = useState(() =>
@@ -1108,7 +1135,11 @@ export default function PlacementTestPage({
     <div 
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="min-h-screen text-charcoal py-12 px-4 sm:px-6 relative flex flex-col items-center justify-start"
+      className={
+        isScrollable
+          ? "min-h-screen text-charcoal py-12 px-4 sm:px-6 relative flex flex-col items-center justify-start"
+          : "h-screen w-screen text-charcoal relative overflow-hidden flex items-center justify-center"
+      }
       style={{
         backgroundColor: "#0d0703", // prevents white flashes during image load
         backgroundImage: `linear-gradient(to bottom right, rgba(20,12,6,0.84), rgba(35,22,12,0.80), rgba(15,8,4,0.88)), url(${libraryDeskBg})`,
