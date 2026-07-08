@@ -376,6 +376,12 @@ body {
   transform: translateX(100%);
 }
 
+/* 3D backface visibility helper for card flips and book page turning */
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
 
 /* ===================== ADMIN (dark glass) ===================== */
 .bg-aurora {

@@ -160,8 +160,8 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
         position: "absolute",
         left: "51.0%",
         width: "40.5%",
-        top: "3.5%",
-        height: "93%",
+        top: "8.0%",
+        height: "84%",
         transformOrigin: "left center",
         transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rot}deg)`,
         zIndex: 50,
@@ -179,8 +179,8 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       position: "absolute",
       left: "51.0%",
       width: "40.5%",
-      top: "3.5%",
-      height: "93%",
+      top: "8.0%",
+      height: "84%",
       transformOrigin: "left center",
       transform: `scale(${scale})`,
       opacity,
@@ -264,8 +264,8 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                 style={{
                   left: "8.5%",
                   width: "40.5%",
-                  top: "3.5%",
-                  height: "93%",
+                  top: "8.0%",
+                  height: "84%",
                 }}
               >
                 {currentPage > 0 && currentPage <= images.length ? (
@@ -273,7 +273,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                     <img 
                       src={images[currentPage - 1]} 
                       alt="" 
-                      className="w-full h-full object-cover" 
+                      className="w-full h-full object-contain" 
                       style={{ filter: "sepia(0.06) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-black/5 pointer-events-none" />
@@ -297,8 +297,8 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                 style={{
                   left: "51.0%",
                   width: "40.5%",
-                  top: "3.5%",
-                  height: "93%",
+                  top: "8.0%",
+                  height: "84%",
                 }}
               >
                 {currentPage < totalSheets - 1 ? (
@@ -306,7 +306,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                     <img 
                       src={images[currentPage + 1]} 
                       alt="" 
-                      className="w-full h-full object-cover" 
+                      className="w-full h-full object-contain" 
                       style={{ filter: "sepia(0.08) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-black/5 pointer-events-none" />
@@ -350,7 +350,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                         <img 
                           src={src} 
                           alt="" 
-                          className="w-full h-full object-cover pointer-events-none"
+                          className="w-full h-full object-contain pointer-events-none"
                           style={{ filter: "sepia(0.08) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-black/5 pointer-events-none" />
@@ -371,7 +371,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                         <img 
                           src={src} 
                           alt="" 
-                          className="w-full h-full object-cover pointer-events-none"
+                          className="w-full h-full object-contain pointer-events-none"
                           style={{ filter: "sepia(0.08) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-black/5 pointer-events-none" />
