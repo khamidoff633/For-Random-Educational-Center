@@ -39,6 +39,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     const targetY = dirY * 180 - 60;
     const targetRot = dirX * 35;
 
+    // Smooth throw animation
     gsap.to(topCardEl, {
       x: targetX,
       y: targetY,
@@ -152,6 +153,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
     
+    // Tilt calculations
     const rotateY = (x / (rect.width / 2)) * 12;
     const rotateX = -(y / (rect.height / 2)) * 12;
     setTilt({ x: rotateY, y: rotateX });
@@ -168,16 +170,17 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       return {
         opacity: 0,
         pointerEvents: "none",
-        transform: "scale(0.8) translateY(30px)",
+        transform: "scale(0.8) translateY(30px) translateZ(-120px)",
         zIndex: 0,
         transition: "opacity 0.4s ease, transform 0.4s ease",
       };
     }
 
+    // Top Card under drag - lifted slightly on Z-axis (+20px) to float above stack
     if (isTop && isDragging) {
       const rot = (dragOffset.x / window.innerWidth) * 35;
       return {
-        transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rot}deg)`,
+        transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) translateZ(20px) rotate(${rot}deg)`,
         zIndex: 35,
         cursor: "grabbing",
         userSelect: "none",
@@ -189,6 +192,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     const zIndex = 30 - deckIndex;
     const opacity = 1 - deckIndex * 0.18;
 
+    // Organic layout coordinates
     const rotList = [0, -3.2, 3.8, -2];
     const xList = [0, -8, 6, -4];
     const yList = [0, 8, 14, 18];
@@ -197,6 +201,9 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     const baseRotation = rotList[idxKey];
     const shiftX = xList[idxKey];
     const shiftY = yList[idxKey];
+
+    // CRITICAL FIX: translateZ separates cards in 3D depth to prevent intersection clipping on hover
+    const translateZ = deckIndex * -30;
 
     const tiltX = isTop ? tilt.y : 0;
     const tiltY = isTop ? tilt.x : 0;
@@ -207,7 +214,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       top: "0",
       width: "100%",
       height: "100%",
-      transform: `translate(${shiftX}px, ${shiftY}px) scale(${scale}) rotate(${baseRotation + tiltY}deg) rotateX(${tiltX}deg)`,
+      transform: `translate(${shiftX}px, ${shiftY}px) translateZ(${translateZ}px) scale(${scale}) rotate(${baseRotation + tiltY}deg) rotateX(${tiltX}deg)`,
       opacity,
       zIndex,
       transformOrigin: "center center",
@@ -251,7 +258,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
             </div>
           </div>
 
-          {/* Right Column (3D Organic Stack Deck with Premium White/Cream Cards) */}
+          {/* Right Column (3D Organic Stack Deck with depth translation fix) */}
           <div className="lg:col-span-7 flex flex-col items-center justify-center">
             
             <div 
@@ -272,8 +279,10 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                     onTouchStart={isTop ? handleStart : undefined}
                     onMouseMove={isTop ? handleTiltMove : undefined}
                     onMouseLeave={isTop ? handleTiltLeave : undefined}
-                    style={getCardStyle(deckIndex)}
-                    // Premium Cream card format with warm golden borders and soft drop shadows
+                    style={{
+                      ...getCardStyle(deckIndex),
+                      transformStyle: "preserve-3d", // enable internal 3D rendering
+                    }}
                     className="rounded-2xl bg-[#fffdf8] border border-caramel/20 p-2 sm:p-3 shadow-[0_18px_40px_-10px_rgba(40,25,12,0.15)] hover:shadow-[0_22px_50px_-8px_rgba(40,25,12,0.22)] transition-shadow duration-300"
                   >
                     {/* Inner image container */}
@@ -281,13 +290,11 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                       <img
                         src={card.src}
                         alt=""
-                        // full cover image for premium clean photo look
                         className="w-full h-full object-cover pointer-events-none"
                         style={{
                           filter: "brightness(1.01) contrast(1.01)",
                         }}
                       />
-                      {/* Smooth photo reflection glare */}
                       <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-white/10 pointer-events-none" />
                     </div>
                   </div>
