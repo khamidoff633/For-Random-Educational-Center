@@ -158,10 +158,10 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       const rot = (dragOffset.x / window.innerWidth) * 30;
       return {
         position: "absolute",
-        left: "50.7%",
-        width: "34.5%",
-        top: "10%",
-        height: "80%",
+        left: "51.0%",
+        width: "40.5%",
+        top: "3.5%",
+        height: "93%",
         transformOrigin: "left center",
         transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rot}deg)`,
         zIndex: 50,
@@ -177,10 +177,10 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
 
     return {
       position: "absolute",
-      left: "50.7%",
-      width: "34.5%",
-      top: "10%",
-      height: "80%",
+      left: "51.0%",
+      width: "40.5%",
+      top: "3.5%",
+      height: "93%",
       transformOrigin: "left center",
       transform: `scale(${scale})`,
       opacity,
@@ -196,7 +196,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       <div className="mx-auto w-[92%] max-w-7xl relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Left Text Column - Adjusted size (4 cols) to fit larger book */}
+          {/* Left Text Column - 4 cols */}
           <div className="lg:col-span-4 text-center lg:text-left">
             <span className="inline-block rounded-full border border-caramel/30 bg-caramel/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.25em] text-caramel-deep">
               {t("galleryBadge")}
@@ -243,18 +243,18 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
             </div>
           </div>
 
-          {/* Right Interactive Column - Expanded size (8 cols) for twice larger book */}
+          {/* Right Interactive Column - 8 cols (Expanded Book Container) */}
           <div className="lg:col-span-8 flex justify-center items-center">
             
-            {/* Twice larger 3D Book shell container */}
+            {/* Large 3D Open Book container without margins, matches cropped image 1.52 aspect ratio */}
             <div 
-              className="relative w-full max-w-[340px] aspect-[1.33/1] sm:max-w-[760px] sm:aspect-[1.33/1] select-none"
+              className="relative w-full max-w-[340px] aspect-[1.52/1] sm:max-w-[820px] sm:aspect-[1.52/1] select-none"
               style={{
                 backgroundImage: `url(${luxuryOpenBook})`,
                 backgroundSize: "100% 100%",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
-                perspective: "1500px" // Increased perspective depth for larger scale
+                perspective: "1600px"
               }}
             >
 
@@ -262,10 +262,10 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
               <div 
                 className="absolute overflow-hidden flex items-center justify-center p-1 sm:p-2.5"
                 style={{
-                  left: "14.8%",
-                  width: "34.5%",
-                  top: "10%",
-                  height: "80%",
+                  left: "8.5%",
+                  width: "40.5%",
+                  top: "3.5%",
+                  height: "93%",
                 }}
               >
                 {currentPage > 0 && currentPage <= images.length ? (
@@ -295,10 +295,10 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
               <div 
                 className="absolute overflow-hidden flex items-center justify-center p-1 sm:p-2.5"
                 style={{
-                  left: "50.7%",
-                  width: "34.5%",
-                  top: "10%",
-                  height: "80%",
+                  left: "51.0%",
+                  width: "40.5%",
+                  top: "3.5%",
+                  height: "93%",
                 }}
               >
                 {currentPage < totalSheets - 1 ? (
