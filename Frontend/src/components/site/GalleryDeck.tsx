@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { ArrowRight, BookOpen, CheckCircle2 } from "lucide-react";
 import gsap from "gsap";
 import type { UIKey } from "../../i18n";
+import realisticOpenBook from "../../assets/realistic_open_book.jpg";
 
 interface GalleryDeckProps {
   images: string[];
@@ -42,11 +43,11 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       }
     });
 
-    // 3D bend flip animation
+    // 3D bend flip animation mimicking physical page weight
     tl.to(sheet, {
       rotationY: -180,
-      z: 40,
-      duration: 0.95,
+      z: 50,
+      duration: 1.05,
       ease: "power2.inOut",
     });
 
@@ -58,17 +59,17 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
 
     if (shadowFront) {
       tl.to(shadowFront, {
-        opacity: 0.55,
-        duration: 0.45,
+        opacity: 0.5,
+        duration: 0.5,
         ease: "power2.in"
       }, 0);
     }
 
     if (shadowBack) {
       tl.fromTo(shadowBack, 
-        { opacity: 0.65 },
-        { opacity: 0, duration: 0.45, ease: "power2.out" },
-        0.45
+        { opacity: 0.6 },
+        { opacity: 0, duration: 0.5, ease: "power2.out" },
+        0.5
       );
     }
   };
@@ -120,7 +121,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
           gsap.to(sheet, {
             rotationY: 0,
             z: 0,
-            duration: 0.45,
+            duration: 0.5,
             ease: "power2.out",
           });
         }
@@ -141,6 +142,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     };
   }, [isDragging, dragStart, dragOffset, currentPage]);
 
+  // Stack styles when being dragged
   const getCardStyle = (index: number): React.CSSProperties => {
     const offset = index - currentPage;
 
@@ -153,19 +155,15 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       };
     }
 
-    const maxVisible = 4;
-    if (offset >= maxVisible) {
-      return {
-        pointerEvents: "none",
-        opacity: 0,
-        transform: "scale(0.85)",
-        zIndex: 1,
-      };
-    }
-
     if (offset === 0 && isDragging) {
       const rot = (dragOffset.x / window.innerWidth) * 30;
       return {
+        position: "absolute",
+        left: "50.8%",
+        width: "37.5%",
+        top: "9.5%",
+        height: "81%",
+        transformOrigin: "left center",
         transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rot}deg)`,
         zIndex: 50,
         cursor: "grabbing",
@@ -174,30 +172,20 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       };
     }
 
-    const scale = 1 - offset * 0.04;
-    const zIndex = 35 - offset;
-    const opacity = 1 - offset * 0.22;
-
-    const rotList = [0, -3, 3.5, -1.5, 2];
-    const xList = [0, -5, 5, -2, 4];
-    const yList = [0, 4, 8, 12, 15];
-
-    const idxKey = index % 5;
-    const rotation = offset === 0 ? 0 : rotList[idxKey] * (1 + offset * 0.1);
-    const shiftX = offset === 0 ? 0 : xList[idxKey];
-    const shiftY = offset === 0 ? 0 : yList[idxKey];
+    const scale = 1 - offset * 0.005;
+    const zIndex = 35 - index;
+    const opacity = offset === 0 ? 1 : 0; // stack hidden underneath background sheet layers
 
     return {
       position: "absolute",
-      left: "0",
-      top: "0",
-      width: "100%",
-      height: "100%",
-      transform: `translate(${shiftX}px, ${shiftY}px) scale(${scale}) rotate(${rotation}deg)`,
-      transformOrigin: "left bottom",
+      left: "50.8%",
+      width: "37.5%",
+      top: "9.5%",
+      height: "81%",
+      transformOrigin: "left center",
+      transform: `scale(${scale})`,
       opacity,
       zIndex,
-      transition: "transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1.1), opacity 0.4s ease",
       cursor: "grab",
       userSelect: "none",
       touchAction: "none",
@@ -256,95 +244,85 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
             </div>
           </div>
 
-          {/* Right Interactive Column (3D OPEN BOOK) */}
+          {/* Right Interactive Column (3D OPEN BOOK WITH OVERLAY) */}
           <div className="lg:col-span-7 flex justify-center items-center">
             
-            {/* 3D OPEN BOOK CONTAINER */}
+            {/* 3D OPEN BOOK WRAPPER (Fits over white background perfectly) */}
             <div 
-              className="relative w-full max-w-[320px] aspect-[1.3/1] sm:max-w-[500px] sm:aspect-[1.45/1] bg-[#27180e] rounded-lg p-2 sm:p-3.5 flex select-none"
+              className="relative w-full max-w-[320px] aspect-[1.33/1] sm:max-w-[520px] sm:aspect-[1.33/1] select-none"
               style={{
-                boxShadow: 
-                  "0 20px 45px rgba(0,0,0,0.45), " +
-                  "inset 0 0 25px rgba(0,0,0,0.85)",
-                border: "3px solid #3c2415",
-                outline: "1px solid #56331e",
+                backgroundImage: `url(${realisticOpenBook})`,
+                backgroundSize: "100% 100%",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                perspective: "1200px" // For 3D sheet rotation
               }}
             >
-              {/* Spine Center Line shadow */}
-              <div className="absolute top-0 bottom-0 left-[50%] -translate-x-[50%] w-1 bg-black/75 z-40" />
 
-              {/* LEFT PAGE STACK (With page depth box-shadow lines) */}
+              {/* LEFT PAGE SURFACE OVERLAY */}
               <div 
-                className="w-1/2 h-full bg-[#fdf5e2] rounded-l border-r border-black/10 relative overflow-hidden flex items-center justify-center p-2.5 sm:p-5"
+                className="absolute overflow-hidden flex items-center justify-center p-1 sm:p-2"
                 style={{
-                  backgroundImage: "linear-gradient(to right, #ebdcb7 0%, #fdf6e2 8%, #fffdf8 100%)",
-                  /* Multiple offset shadows create realistic stacked paper layers on left side */
-                  boxShadow: 
-                    "inset -2px 0 10px rgba(0,0,0,0.18), " +
-                    "-1px 1px 0 #d2c09d, -2px 2px 0 #fffcf6, " +
-                    "-3px 3px 0 #d2c09d, -4px 4px 0 #fffcf6, " +
-                    "-5px 5px 0 #d2c09d, -6px 6px 0 #fffcf6, " +
-                    "-7px 7px 12px rgba(0,0,0,0.3)"
+                  left: "11.2%",
+                  width: "37.5%",
+                  top: "9.5%",
+                  height: "81%",
                 }}
               >
                 {currentPage > 0 && currentPage <= images.length ? (
-                  <div className="w-full h-full rounded overflow-hidden relative border border-black/5">
+                  <div className="w-full h-full rounded overflow-hidden relative">
                     <img 
                       src={images[currentPage - 1]} 
                       alt="" 
                       className="w-full h-full object-cover" 
-                      style={{ filter: "sepia(0.06) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
+                      style={{ filter: "sepia(0.08) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-black/5 pointer-events-none" />
                   </div>
                 ) : (
-                  <div className="text-center max-w-[130px] sm:max-w-xs px-1 pointer-events-none select-none opacity-80 scale-90 sm:scale-100">
-                    <BookOpen size={20} className="mx-auto text-caramel mb-2 animate-pulse" />
-                    <h4 className="font-display text-[9px] sm:text-sm font-bold text-charcoal uppercase">
+                  <div className="text-center max-w-[100px] sm:max-w-xs px-1 pointer-events-none select-none opacity-80 scale-[0.8] sm:scale-100">
+                    <BookOpen size={20} className="mx-auto text-caramel-deep mb-2 animate-pulse" />
+                    <h4 className="font-display text-[9px] sm:text-xs font-bold text-charcoal uppercase">
                       Apex Academy
                     </h4>
-                    <p className="text-[7px] sm:text-[10px] font-bold text-caramel mt-0.5">
+                    <p className="text-[7px] sm:text-[9px] font-bold text-caramel-deep mt-0.5">
                       {t("navGallery") === "Galereya" ? "Foto Albom" : t("navGallery") === "Галерея" ? "Фото Альбом" : "Photo Album"}
                     </p>
                   </div>
                 )}
               </div>
 
-              {/* RIGHT PAGE STACK (With page depth box-shadow lines) */}
+              {/* RIGHT PAGE SURFACE OVERLAY (Upcoming background page layer) */}
               <div 
-                className="w-1/2 h-full bg-[#fdf5e2] rounded-r border-l border-black/10 relative overflow-hidden flex items-center justify-center p-2.5 sm:p-5"
+                className="absolute overflow-hidden flex items-center justify-center p-1 sm:p-2"
                 style={{
-                  backgroundImage: "linear-gradient(to left, #ebdcb7 0%, #fdf6e2 8%, #fffdf8 100%)",
-                  /* Multiple offset shadows create realistic stacked paper layers on right side */
-                  boxShadow: 
-                    "inset 2px 0 10px rgba(0,0,0,0.18), " +
-                    "1px 1px 0 #d2c09d, 2px 2px 0 #fffcf6, " +
-                    "3px 3px 0 #d2c09d, 4px 4px 0 #fffcf6, " +
-                    "5px 5px 0 #d2c09d, 6px 6px 0 #fffcf6, " +
-                    "7px 7px 12px rgba(0,0,0,0.3)"
+                  left: "50.8%",
+                  width: "37.5%",
+                  top: "9.5%",
+                  height: "81%",
                 }}
               >
                 {currentPage < totalSheets - 1 ? (
-                  <div className="w-full h-full rounded overflow-hidden relative border border-black/5">
+                  <div className="w-full h-full rounded overflow-hidden relative">
                     <img 
                       src={images[currentPage + 1]} 
                       alt="" 
                       className="w-full h-full object-cover" 
-                      style={{ filter: "sepia(0.06) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
+                      style={{ filter: "sepia(0.08) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-black/5 pointer-events-none" />
                   </div>
                 ) : (
-                  <div className="text-center max-w-[130px] sm:max-w-xs px-1 pointer-events-none select-none opacity-50 scale-90 sm:scale-100">
-                    <CheckCircle2 size={20} className="mx-auto text-jade-deep mb-2" />
-                    <span className="font-display text-[8px] sm:text-[10px] font-bold text-charcoal-soft uppercase">
+                  <div className="text-center max-w-[100px] sm:max-w-xs px-1 pointer-events-none select-none opacity-50 scale-[0.8] sm:scale-100">
+                    <CheckCircle2 size={18} className="mx-auto text-jade-deep mb-2" />
+                    <span className="font-display text-[8px] sm:text-[9px] font-bold text-charcoal-soft uppercase">
                       {t("navGallery") === "Galereya" ? "Albom yakunlandi" : t("navGallery") === "Галерея" ? "Альбом завершен" : "End of Album"}
                     </span>
                   </div>
                 )}
               </div>
 
-              {/* ── 3D FLIPPING SHEETS ── */}
+              {/* ── 3D FLIPPING SHEETS OVERLAY ── */}
               {!isCompleted && images.map((src, idx) => {
                 if (idx < currentPage) return null;
                 const isTop = idx === currentPage;
@@ -357,60 +335,45 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                     }}
                     onMouseDown={isTop ? handleStart : undefined}
                     onTouchStart={isTop ? handleStart : undefined}
-                    className="absolute top-2 bottom-2 right-2 left-[50%] sm:top-3.5 sm:bottom-3.5 sm:right-3.5 origin-left"
-                    style={{
-                      transformStyle: "preserve-3d",
-                      zIndex: 35 - idx,
-                      cursor: isTop ? (isDragging ? "grabbing" : "grab") : "default",
-                      touchAction: "none",
-                    }}
+                    style={getCardStyle(idx)}
                   >
                     
-                    {/* FRONT FACE */}
+                    {/* FRONT FACE (Visible on the right side) */}
                     <div 
-                      className="absolute inset-0 bg-[#fffcf6] rounded-r border-l border-black/5 p-2.5 sm:p-5 flex items-center justify-center backface-hidden"
+                      className="absolute inset-0 bg-[#fffcf6] rounded-r border-l border-black/5 p-1 sm:p-2 flex items-center justify-center backface-hidden"
                       style={{
                         backgroundImage: "linear-gradient(to left, #ebdcb7 0%, #fdf6e2 8%, #fffdf8 100%)",
-                        /* Individual page shadow thickness */
-                        boxShadow: 
-                          "inset -12px 0 25px rgba(0,0,0,0.05), " +
-                          "1px 1px 0 #d2c09d, 2px 2px 0 #fffcf6, " +
-                          "3px 3px 10px rgba(0,0,0,0.2)"
                       }}
                     >
                       <div className="page-shadow-front absolute inset-0 bg-black opacity-0 pointer-events-none z-10" />
 
-                      <div className="w-full h-full rounded overflow-hidden relative border border-black/5">
+                      <div className="w-full h-full rounded overflow-hidden relative">
                         <img 
                           src={src} 
                           alt="" 
                           className="w-full h-full object-cover pointer-events-none"
-                          style={{ filter: "sepia(0.06) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
+                          style={{ filter: "sepia(0.08) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-black/5 pointer-events-none" />
                       </div>
                     </div>
 
-                    {/* BACK FACE */}
+                    {/* BACK FACE (Visible on the left side after flipped) */}
                     <div 
-                      className="absolute inset-0 bg-[#fffcf6] rounded-l border-r border-black/5 p-2.5 sm:p-5 flex items-center justify-center backface-hidden"
+                      className="absolute inset-0 bg-[#fffcf6] rounded-l border-r border-black/5 p-1 sm:p-2 flex items-center justify-center backface-hidden"
                       style={{
                         transform: "rotateY(180deg)",
                         backgroundImage: "linear-gradient(to right, #ebdcb7 0%, #fdf6e2 8%, #fffdf8 100%)",
-                        boxShadow: 
-                          "inset 12px 0 25px rgba(0,0,0,0.05), " +
-                          "-1px 1px 0 #d2c09d, -2px 2px 0 #fffcf6, " +
-                          "-3px 3px 10px rgba(0,0,0,0.2)"
                       }}
                     >
                       <div className="page-shadow-back absolute inset-0 bg-black opacity-0 pointer-events-none z-10" />
 
-                      <div className="w-full h-full rounded overflow-hidden relative border border-black/5">
+                      <div className="w-full h-full rounded overflow-hidden relative">
                         <img 
                           src={src} 
                           alt="" 
                           className="w-full h-full object-cover pointer-events-none"
-                          style={{ filter: "sepia(0.06) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
+                          style={{ filter: "sepia(0.08) contrast(1.02) brightness(0.96)", mixBlendMode: "multiply" }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-black/5 pointer-events-none" />
                       </div>
