@@ -9,7 +9,6 @@ interface GalleryDeckProps {
 }
 
 export default function GalleryDeck({ images, t }: GalleryDeckProps) {
-  // We keep a local array of card indices to rotate them dynamically
   const [cards, setCards] = useState(() => 
     images.map((src, index) => ({ id: index, src, index }))
   );
@@ -24,7 +23,8 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
   // 3D Mouse Parallax Tilt for top card
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
-  // Swipe / Throw active card away
+  const total = images.length;
+
   const throwCard = (dirX: number, dirY: number) => {
     if (isAnimating || cards.length === 0) return;
     setIsAnimating(true);
@@ -35,7 +35,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       return;
     }
 
-    // GSAP Throw away with realistic spin physics
     const targetX = dirX * (window.innerWidth > 768 ? 480 : 320);
     const targetY = dirY * 180 - 60;
     const targetRot = dirX * 35;
@@ -55,7 +54,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
   };
 
   const cycleCards = () => {
-    // Take the top card and move it to the bottom of the array
     setCards((prev) => {
       if (prev.length === 0) return prev;
       const [first, ...rest] = prev;
@@ -71,7 +69,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     throwCard(dir, -0.3);
   };
 
-  // Coords helper
   const getCoords = (e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
     if ("touches" in e) {
       if (e.touches.length > 0) {
@@ -112,7 +109,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       const clickThreshold = 6;
 
       if (distance < clickThreshold) {
-        // Simple click -> throw away
         const dir = Math.random() > 0.5 ? 1 : -1;
         throwCard(dir, -0.3);
       } else {
@@ -122,7 +118,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
           const dirY = dragOffset.y / 150;
           throwCard(dirX, dirY);
         } else {
-          // Snap back with spring physics
           const topCardEl = activeCardRef.current;
           if (topCardEl) {
             gsap.to(topCardEl, {
@@ -151,7 +146,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     };
   }, [isDragging, dragStart, dragOffset, cards]);
 
-  // Active Card Mouse Tilt Parallax
   const handleTiltMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDragging || isAnimating) return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -167,7 +161,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     setTilt({ x: 0, y: 0 });
   };
 
-  // Stack Card Styles mimicking natural scattered cards on desk
   const getCardStyle = (deckIndex: number): React.CSSProperties => {
     const isTop = deckIndex === 0;
 
@@ -181,12 +174,11 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       };
     }
 
-    // Top Card under drag
     if (isTop && isDragging) {
       const rot = (dragOffset.x / window.innerWidth) * 35;
       return {
         transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) rotate(${rot}deg)`,
-        zIndex: 50,
+        zIndex: 35,
         cursor: "grabbing",
         userSelect: "none",
         touchAction: "none",
@@ -197,8 +189,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     const zIndex = 30 - deckIndex;
     const opacity = 1 - deckIndex * 0.18;
 
-    // Organic offsets for stacked layers (mimics cards piled randomly)
-    const rotList = [0, -3.5, 4, -2];
+    const rotList = [0, -3.2, 3.8, -2];
     const xList = [0, -8, 6, -4];
     const yList = [0, 8, 14, 18];
 
@@ -207,7 +198,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     const shiftX = xList[idxKey];
     const shiftY = yList[idxKey];
 
-    // Apply Parallax Tilt on Top Card
     const tiltX = isTop ? tilt.y : 0;
     const tiltY = isTop ? tilt.x : 0;
 
@@ -261,12 +251,11 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
             </div>
           </div>
 
-          {/* Right Column (3D Tinder-style Organic Stack) */}
+          {/* Right Column (3D Organic Stack Deck with Premium White/Cream Cards) */}
           <div className="lg:col-span-7 flex flex-col items-center justify-center">
             
-            {/* Aspect lock box */}
             <div 
-              className="relative w-[300px] h-[188px] sm:w-[480px] sm:h-[300px] flex items-center justify-center"
+              className="relative w-[290px] h-[193px] sm:w-[460px] sm:h-[306px] flex items-center justify-center"
               style={{
                 perspective: "1200px",
                 transformStyle: "preserve-3d",
@@ -284,43 +273,29 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                     onMouseMove={isTop ? handleTiltMove : undefined}
                     onMouseLeave={isTop ? handleTiltLeave : undefined}
                     style={getCardStyle(deckIndex)}
-                    // Beautiful card shape with soft shadow and thin luxury golden borders
-                    className="rounded-2xl bg-charcoal border border-caramel/20 p-2 shadow-[0_30px_60px_-12px_rgba(50,30,10,0.22)] overflow-hidden"
+                    // Premium Cream card format with warm golden borders and soft drop shadows
+                    className="rounded-2xl bg-[#fffdf8] border border-caramel/20 p-2 sm:p-3 shadow-[0_18px_40px_-10px_rgba(40,25,12,0.15)] hover:shadow-[0_22px_50px_-8px_rgba(40,25,12,0.22)] transition-shadow duration-300"
                   >
-                    
-                    {/* CARD CONTENT WITH BLURRED IMAGE BACKDROP */}
-                    <div className="w-full h-full rounded-xl overflow-hidden bg-black/60 flex items-center justify-center relative">
-                      
-                      {/* 1. Blurred background image (Fills the entire card organically with image colors) */}
-                      <div 
-                        className="absolute inset-0 bg-cover bg-center blur-2xl scale-110 opacity-35"
+                    {/* Inner image container */}
+                    <div className="w-full h-full rounded-xl overflow-hidden bg-cream-soft/20 flex items-center justify-center relative border border-black/5">
+                      <img
+                        src={card.src}
+                        alt=""
+                        // full cover image for premium clean photo look
+                        className="w-full h-full object-cover pointer-events-none"
                         style={{
-                          backgroundImage: `url(${card.src})`,
+                          filter: "brightness(1.01) contrast(1.01)",
                         }}
                       />
-
-                      {/* 2. Crisp centered image */}
-                      <div className="relative w-full h-full flex items-center justify-center p-1 sm:p-2 z-10">
-                        <img
-                          src={card.src}
-                          alt=""
-                          className="max-w-full max-h-full object-contain rounded-lg shadow-lg pointer-events-none"
-                          style={{
-                            filter: "brightness(1.02) contrast(1.02)",
-                          }}
-                        />
-                      </div>
-                      
-                      {/* Vignette mask */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/5 z-20 pointer-events-none" />
+                      {/* Smooth photo reflection glare */}
+                      <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-white/10 pointer-events-none" />
                     </div>
-
                   </div>
                 );
               })}
             </div>
 
-            {/* Dot Indicator Progress bar */}
+            {/* Pagination dot indicator */}
             {cards.length > 0 && (
               <div className="flex gap-1.5 mt-8 justify-center">
                 {images.map((_, idx) => (
@@ -329,7 +304,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                     className={`h-1.5 rounded-full transition-all duration-300 ${
                       idx === cards[0].index
                         ? "w-7 bg-gradient-to-r from-caramel to-caramel-deep"
-                        : "w-1.5 bg-charcoal/15"
+                        : "w-1.5 bg-charcoal/10"
                     }`}
                   />
                 ))}
