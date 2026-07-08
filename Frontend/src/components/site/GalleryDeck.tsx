@@ -199,16 +199,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
             ))}
           </div>
 
-          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-charcoal-soft/50 uppercase tracking-wider">
-            <span>
-              {t("navGallery") === "Galereya" 
-                ? "Aylantirish uchun sudrang yoki kliklang" 
-                : t("navGallery") === "Галерея" 
-                ? "Проведите или нажмите для прокрутки" 
-                : "Drag or click to rotate"}
-            </span>
-          </div>
-
         </div>
 
       </div>
