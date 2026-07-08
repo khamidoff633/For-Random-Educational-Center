@@ -75,61 +75,65 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
   const getCardStyle = (index: number): React.CSSProperties => {
     let diff = index - activeIndex;
 
-    // Infinite loop wrap
+    // Wrap around for infinite loop
     if (diff < -total / 2) diff += total;
     if (diff > total / 2) diff -= total;
 
     const dragProgress = dragOffset / 300;
     const progress = diff - dragProgress;
 
-    const isVisible = Math.abs(progress) < 2.5;
+    // CRITICAL CLEANUP: Only show 3 cards (Active, Left neighbor, Right neighbor).
+    // All other cards are completely hidden (opacity: 0) to avoid stacked clutter!
+    const isVisible = Math.abs(progress) < 1.6;
     if (!isVisible) {
       return {
         opacity: 0,
         pointerEvents: "none",
-        transform: "translateX(0px) scale(0.65) rotate(0deg)",
+        transform: "translateX(0px) scale(0.6) rotate(0deg)",
         zIndex: 0,
       };
     }
 
     const isMobile = window.innerWidth < 768;
     
-    // Horizontal spread settings
-    const spread = isMobile ? 110 : 230; 
-    const scale = 1 - Math.abs(progress) * (isMobile ? 0.15 : 0.12);
+    // Spread distances tailored to eliminate messy card overlaps
+    const spread = isMobile ? 140 : 340; 
+    const scale = 1 - Math.abs(progress) * (isMobile ? 0.22 : 0.18);
     const translateX = progress * spread;
-    const opacity = 1 - Math.abs(progress) * 0.45;
     
-    // Depth rotation (creates a beautiful organic desk curve, no Y-rotation bugs!)
-    const rotateZ = progress * 3.5;
+    // Soft fade for background cards
+    const opacity = 1 - Math.abs(progress) * 0.55;
+    
+    // Minimal organic Z-rotation (tilt) for realistic desk paper feel
+    const rotateZ = progress * 3.2;
     const zIndex = 10 - Math.round(Math.abs(progress) * 2);
 
     return {
       position: "absolute",
       left: "50%",
       top: "50%",
-      width: isMobile ? "250px" : "540px",
-      height: isMobile ? "156px" : "338px",
-      marginLeft: isMobile ? "-125px" : "-270px",
-      marginTop: isMobile ? "-78px" : "-169px",
+      width: isMobile ? "210px" : "400px",
+      height: isMobile ? "131px" : "250px",
+      marginLeft: isMobile ? "-105px" : "-200px",
+      marginTop: isMobile ? "-65px" : "-125px",
       transform: `translateX(${translateX}px) scale(${scale}) rotate(${rotateZ}deg)`,
       opacity,
       zIndex,
       cursor: index === activeIndex ? (isDragging ? "grabbing" : "grab") : "pointer",
       userSelect: "none",
       touchAction: "none",
-      // GSAP style fluid CSS transition bindings
+      // Premium snappy elastic snap transition
       transition: isDragging 
         ? "none" 
-        : "transform 0.55s cubic-bezier(0.25, 0.8, 0.25, 1.15), opacity 0.55s ease, z-index 0.55s ease",
+        : "transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.65s ease, z-index 0.65s ease",
     };
   };
 
   return (
     <section id="gallery" className="py-24 bg-cream-soft/10 overflow-hidden relative">
-      {/* Light soft warm ambient light blobs */}
-      <div className="absolute top-[10%] left-[15%] w-96 h-96 rounded-full bg-caramel/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[10%] right-[15%] w-96 h-96 rounded-full bg-caramel/5 blur-[120px] pointer-events-none" />
+      {/* Dynamic warm glow lights */}
+      <div className="absolute top-[10%] left-[20%] w-96 h-96 rounded-full bg-caramel/5 blur-[130px] pointer-events-none" />
+      <div className="absolute bottom-[10%] right-[20%] w-96 h-96 rounded-full bg-caramel/5 blur-[130px] pointer-events-none" />
 
       <div className="mx-auto w-[92%] max-w-7xl relative z-10">
         
@@ -153,7 +157,7 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
         {/* ── 2.5D COVERFLOW VIEWPORT ── */}
         <div 
           ref={containerRef}
-          className="relative w-full h-[200px] sm:h-[420px] flex items-center justify-center"
+          className="relative w-full h-[180px] sm:h-[320px] flex items-center justify-center"
           onMouseDown={handleStart}
           onTouchStart={handleStart}
         >
@@ -164,17 +168,18 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                 key={idx}
                 onClick={() => handleCardClick(idx)}
                 style={getCardStyle(idx)}
-                // Premium white/cream layout with thin gold borders and soft drop shadows
-                className={`rounded-2xl bg-white border border-caramel/20 p-2 shadow-[0_15px_40px_-10px_rgba(40,25,12,0.14)] hover:shadow-[0_20px_50px_-8px_rgba(200,120,40,0.18)] transition-all duration-300 ${
-                  isCenter ? "hover:-translate-y-2 border-caramel/40 shadow-[0_20px_45px_-8px_rgba(200,120,40,0.22)]" : "opacity-60"
+                // Clean white card format, caramel border, deep shadow
+                className={`rounded-2xl bg-white border border-caramel/20 p-3 shadow-[0_12px_35px_-6px_rgba(40,25,12,0.12)] hover:shadow-[0_18px_45px_-8px_rgba(200,120,40,0.16)] transition-all duration-300 ${
+                  isCenter ? "hover:-translate-y-2 border-caramel shadow-[0_18px_40px_-6px_rgba(200,120,40,0.2)]" : "opacity-50"
                 }`}
               >
-                {/* 100% full-bleed crisp image display inside */}
-                <div className="w-full h-full rounded-xl overflow-hidden bg-cream-soft/20 flex items-center justify-center relative border border-black/5">
+                {/* Image fits naturally inside white card, no distortion or black margins */}
+                <div className="w-full h-full rounded-xl overflow-hidden bg-[#faf8f4] flex items-center justify-center relative border border-black/5">
                   <img
                     src={src}
                     alt=""
-                    className="w-full h-full object-cover pointer-events-none"
+                    // object-contain ensures absolute original aspect ratio with zero cropping/stretching
+                    className="w-full h-full object-contain pointer-events-none p-1 sm:p-2"
                     style={{
                       filter: "brightness(1.01) contrast(1.01)",
                     }}
@@ -186,10 +191,10 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
           })}
         </div>
 
-        {/* ── Progress Dots & Swipe Tip ── */}
+        {/* ── Progress Indicators & Swipe tip ── */}
         <div className="flex flex-col items-center gap-6 mt-12">
           
-          {/* Slider indicator dots */}
+          {/* Progress Dots */}
           <div className="flex gap-2">
             {images.map((_, idx) => (
               <button
