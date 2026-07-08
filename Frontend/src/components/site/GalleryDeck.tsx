@@ -13,15 +13,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(0);
   
-  // Tactical press state for physical button compression
-  const [isPressed, setIsPressed] = useState(false);
-  
-  // Tracking swipe start time to calculate drag velocity (Fling inertia)
-  const dragStartTime = useRef(0);
-
-  // Flicker-free parallax tilt tracked relative to viewport
-  const [containerTilt, setContainerTilt] = useState({ x: 0, y: 0 });
-
   const containerRef = useRef<HTMLDivElement>(null);
   const total = images.length;
 
@@ -40,8 +31,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
 
   const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDragging(true);
-    setIsPressed(true);
-    dragStartTime.current = Date.now();
     const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
     setDragStart(clientX);
     setDragOffset(0);
@@ -57,20 +46,11 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
   const handleEnd = () => {
     if (!isDragging) return;
     setIsDragging(false);
-    setIsPressed(false);
     
-    const dragDuration = Date.now() - dragStartTime.current;
-    const absOffset = Math.abs(dragOffset);
-
-    // Fling Inertia logic: if swipe was fast (< 220ms) and had momentum, trigger slide instantly
-    const isFling = dragDuration < 220 && absOffset > 40;
-
-    if (isFling || absOffset > 80) {
-      if (dragOffset < 0) {
-        handleNext();
-      } else {
-        handlePrev();
-      }
+    if (dragOffset < -55) {
+      handleNext();
+    } else if (dragOffset > 55) {
+      handlePrev();
     }
     setDragOffset(0);
   };
@@ -91,22 +71,6 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     };
   }, [isDragging, dragStart, dragOffset]);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isDragging) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    
-    const rotateY = (x / (rect.width / 2)) * 8;
-    const rotateX = -(y / (rect.height / 2)) * 8;
-    setContainerTilt({ x: rotateY, y: rotateX });
-  };
-
-  const handleMouseLeave = () => {
-    setContainerTilt({ x: 0, y: 0 });
-    setIsPressed(false);
-  };
-
   const getCardStyle = (index: number): React.CSSProperties => {
     let diff = index - activeIndex;
 
@@ -117,51 +81,30 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
     const dragProgress = dragOffset / 300;
     const progress = diff - dragProgress;
 
+    // Show exactly 3 cards at a time to keep layout clean and zero-overlap
     const isVisible = Math.abs(progress) < 1.6;
     if (!isVisible) {
       return {
         opacity: 0,
         pointerEvents: "none",
-        transform: "translateX(0px) scale(0.6) rotate(0deg)",
+        transform: "translateX(0px) scale(0.6)",
         zIndex: 0,
       };
     }
 
     const isMobile = window.innerWidth < 768;
-    const spread = isMobile ? 140 : 340; 
     
-    // Compute basic scale and 3D Z-tilt
-    let scale = 1 - Math.abs(progress) * (isMobile ? 0.22 : 0.18);
+    // Strict 2D layout calculation: no 3D rotations or Z depth
+    const spread = isMobile ? 130 : 340; 
+    const scale = 1 - Math.abs(progress) * (isMobile ? 0.22 : 0.16);
     const translateX = progress * spread;
     const opacity = 1 - Math.abs(progress) * 0.55;
-    
-    const isCenter = index === activeIndex;
-
-    // Elastic Physics: neighboring cards lean organically towards active card
-    const elasticSway = isCenter ? 0 : (dragOffset / 100) * 1.8;
-    const rotateZ = progress * 3.5 + elasticSway;
     const zIndex = 10 - Math.round(Math.abs(progress) * 2);
 
-    // 3D Parallax Tilt (Only on active center card)
-    const tiltX = isCenter ? containerTilt.y : 0;
-    const tiltY = isCenter ? containerTilt.x : 0;
-
-    // Lift center card on hover/drag
-    let liftY = isCenter ? (isDragging ? -15 : -8) : 0;
-    let translateZ = isCenter ? 0 : -40; // Push background cards back
-
-    // Tactile 3D Button Press: compress active card slightly when clicked/pressed
-    if (isCenter && isPressed) {
-      scale *= 0.96;
-      translateZ -= 15;
-    }
-
-    // Dynamic Soya Depth
-    const shadowStyle = isCenter 
-      ? (isDragging 
-          ? "0 35px 65px -12px rgba(200, 120, 40, 0.26), 0 10px 22px -5px rgba(200, 120, 40, 0.1)" 
-          : "0 22px 45px -8px rgba(200, 120, 40, 0.18), 0 5px 15px -3px rgba(40, 25, 12, 0.06)")
-      : "0 10px 25px -6px rgba(40, 25, 12, 0.08)";
+    // Natural paper card shadow
+    const shadowStyle = index === activeIndex 
+      ? "0 16px 36px -8px rgba(40, 25, 12, 0.12), 0 4px 12px -3px rgba(40, 25, 12, 0.05)"
+      : "0 8px 20px -6px rgba(40, 25, 12, 0.06)";
 
     return {
       position: "absolute",
@@ -171,53 +114,22 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
       height: isMobile ? "131px" : "250px",
       marginLeft: isMobile ? "-105px" : "-200px",
       marginTop: isMobile ? "-65px" : "-125px",
-      transformStyle: "preserve-3d",
-      transform: `translateX(${translateX}px) translateY(${liftY}px) translateZ(${translateZ}px) scale(${scale}) rotateZ(${rotateZ}deg) rotateY(${tiltY}deg) rotateX(${tiltX}deg)`,
+      transform: `translateX(${translateX}px) scale(${scale})`, // 100% flat 2D transform
       opacity,
       zIndex,
       boxShadow: shadowStyle,
-      cursor: isCenter ? (isDragging ? "grabbing" : "grab") : "pointer",
+      cursor: index === activeIndex ? (isDragging ? "grabbing" : "grab") : "pointer",
       userSelect: "none",
       touchAction: "none",
+      // Clean spring-like snap transition
       transition: isDragging 
         ? "none" 
-        : "transform 0.65s cubic-bezier(0.25, 0.8, 0.25, 1.15), opacity 0.65s ease, z-index 0.65s ease, box-shadow 0.45s ease",
+        : "transform 0.55s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.55s ease, z-index 0.55s ease, box-shadow 0.4s ease",
     };
   };
 
-  // Dynamic Ambilight Projection Color Mapping based on active image content
-  const getAmbientColor = (index: number) => {
-    const src = images[index] || "";
-    if (src.includes("github") || src.includes("octocat")) {
-      return "rgba(100, 100, 100, 0.15)";
-    }
-    if (src.includes("js") || src.includes("javascript")) {
-      return "rgba(247, 223, 30, 0.22)";
-    }
-    if (src.includes("bakhiriddin") || src.includes("logo")) {
-      return "rgba(212, 170, 43, 0.2)";
-    }
-    if (src.includes("dashboard") || src.includes("apex")) {
-      return "rgba(40, 120, 240, 0.18)";
-    }
-    return "rgba(212, 143, 56, 0.16)"; // default warm caramel glow
-  };
-
-  const glareX = -containerTilt.x * 6;
-  const glareY = containerTilt.y * 6;
-
   return (
     <section id="gallery" className="py-24 bg-cream-soft/10 overflow-hidden relative">
-      
-      {/* 🌈 DYNAMIC AMBILIGHT PROJECTION LIGHTS (Color changes dynamically to match active image) */}
-      <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[340px] rounded-full pointer-events-none z-0 transition-all duration-700 ease-in-out"
-        style={{
-          background: `radial-gradient(circle, ${getAmbientColor(activeIndex)} 0%, transparent 70%)`,
-          filter: "blur(60px)"
-        }}
-      />
-
       <div className="mx-auto w-[92%] max-w-7xl relative z-10">
         
         {/* Header section */}
@@ -237,18 +149,12 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
           </p>
         </div>
 
-        {/* ── 2.5D COVERFLOW VIEWPORT ── */}
+        {/* ── 2D COVERFLOW VIEWPORT (Clean, Flat, zero-glitch) ── */}
         <div 
           ref={containerRef}
           className="relative w-full h-[180px] sm:h-[320px] flex items-center justify-center"
           onMouseDown={handleStart}
           onTouchStart={handleStart}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          style={{
-            perspective: "1200px",
-            transformStyle: "preserve-3d"
-          }}
         >
           {images.map((src, idx) => {
             const isCenter = idx === activeIndex;
@@ -257,45 +163,20 @@ export default function GalleryDeck({ images, t }: GalleryDeckProps) {
                 key={idx}
                 onClick={() => handleCardClick(idx)}
                 style={getCardStyle(idx)}
-                onMouseDown={isCenter ? () => setIsPressed(true) : undefined}
-                onMouseUp={() => setIsPressed(false)}
-                className={`rounded-2xl bg-[#fffdf8] border border-caramel/20 p-3 transition-colors duration-300 relative group ${
+                // Classic cream card format with soft borders and natural flat shadow
+                className={`rounded-2xl bg-white border border-caramel/20 p-3 transition-colors duration-300 ${
                   isCenter ? "border-caramel/40" : "opacity-50"
                 }`}
               >
-                {/* ⚜️ GOLD FILIGREE CORNERS (Ornate luxury details only on active card) */}
-                {isCenter && (
-                  <>
-                    <div className="absolute top-2.5 left-2.5 w-3 h-3 border-t-2 border-l-2 border-caramel/50 rounded-tl pointer-events-none z-30 transition-opacity duration-300" />
-                    <div className="absolute top-2.5 right-2.5 w-3 h-3 border-t-2 border-r-2 border-caramel/50 rounded-tr pointer-events-none z-30 transition-opacity duration-300" />
-                    <div className="absolute bottom-2.5 left-2.5 w-3 h-3 border-b-2 border-l-2 border-caramel/50 rounded-bl pointer-events-none z-30 transition-opacity duration-300" />
-                    <div className="absolute bottom-2.5 right-2.5 w-3 h-3 border-b-2 border-r-2 border-caramel/50 rounded-br pointer-events-none z-30 transition-opacity duration-300" />
-                  </>
-                )}
-
-                {/* Image backdrop container */}
-                <div className="w-full h-full rounded-xl overflow-hidden bg-cream-soft/20 flex items-center justify-center relative border border-black/5">
+                {/* 100% contained display inside paper card */}
+                <div className="w-full h-full rounded-xl overflow-hidden bg-cream-soft/10 flex items-center justify-center relative border border-black/5">
                   <img
                     src={src}
                     alt=""
                     className="w-full h-full object-contain pointer-events-none p-1 sm:p-2"
-                    style={{
-                      filter: "brightness(1.01) contrast(1.01)",
-                    }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-white/10 pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-black/5 via-transparent to-white/5 pointer-events-none" />
                 </div>
-
-                {/* DYNAMIC SHIFTING GLARE OVERLAY */}
-                {isCenter && (
-                  <div 
-                    className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
-                    style={{
-                      background: `radial-gradient(circle at ${50 + glareX}% ${50 + glareY}%, rgba(255,255,255,0.18) 0%, transparent 65%)`,
-                      mixBlendMode: "overlay"
-                    }}
-                  />
-                )}
               </div>
             );
           })}
