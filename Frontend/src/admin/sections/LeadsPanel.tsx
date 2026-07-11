@@ -4,11 +4,12 @@ import { api } from "../../api/client";
 import Modal from "../../components/ui/Modal";
 import { Field, TextArea, Select } from "../ui/AdminField";
 import type { Course, Lead, LeadStatus } from "../../types";
+import { Card, CardContent, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Badge, TabsList, TabsTrigger } from "../ui/ShadcnComponents";
 
-const STATUS_META: Record<LeadStatus, { label: string; dot: string; chip: string }> = {
-  yangi: { label: "Yangi", dot: "bg-sky-500", chip: "bg-sky-500/12 text-sky-700" },
-  boglanildi: { label: "Bog'lanildi", dot: "bg-amber-500", chip: "bg-amber-500/12 text-amber-700" },
-  royxatga_otdi: { label: "Ro'yxatdan o'tdi", dot: "bg-jade", chip: "bg-jade/12 text-jade-deep" },
+const STATUS_META: Record<LeadStatus, { label: string; dot: string; chip: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" }> = {
+  yangi: { label: "Yangi", dot: "bg-sky-500", chip: "bg-sky-500/12 text-sky-700", variant: "default" },
+  boglanildi: { label: "Bog'lanildi", dot: "bg-amber-500", chip: "bg-amber-500/12 text-amber-700", variant: "secondary" },
+  royxatga_otdi: { label: "Ro'yxatdan o'tdi", dot: "bg-jade", chip: "bg-jade/12 text-jade-deep", variant: "success" },
 };
 
 const FILTERS: { key: "all" | LeadStatus; label: string }[] = [
@@ -110,128 +111,151 @@ export default function LeadsPanel({
 
   return (
     <div>
-      {/* Summary */}
-      <div className="mb-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="card-soft rounded-2xl p-4">
-          <p className="font-display text-2xl font-extrabold text-charcoal">{active.length}</p>
-          <p className="text-xs text-charcoal-soft">Faol arizalar</p>
-        </div>
-        <div className="card-soft rounded-2xl p-4">
-          <p className="font-display text-2xl font-extrabold text-jade">{converted}</p>
-          <p className="text-xs text-charcoal-soft">Ro'yxatdan o'tdi</p>
-        </div>
-        <div className="card-soft rounded-2xl p-4">
-          <p className="font-display flex items-center gap-1.5 text-2xl font-extrabold text-charcoal">
-            <TrendingUp size={18} className="text-caramel" />
-            {conversion}%
-          </p>
-          <p className="text-xs text-charcoal-soft">Konversiya</p>
-        </div>
-        <div className="card-soft rounded-2xl p-4">
-          <p className="font-display text-2xl font-extrabold text-sky-600">
-            {active.filter((l) => l.status === "yangi").length}
-          </p>
-          <p className="text-xs text-charcoal-soft">Yangi</p>
-        </div>
+      {/* Summary with Shadcn Cards */}
+      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <Card>
+          <CardContent className="p-5">
+            <p className="font-display text-2xl font-extrabold text-charcoal">{active.length}</p>
+            <p className="text-xs font-semibold text-charcoal-soft/80 mt-1">Faol arizalar</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <p className="font-display text-2xl font-extrabold text-jade-deep">{converted}</p>
+            <p className="text-xs font-semibold text-charcoal-soft/80 mt-1">Ro'yxatdan o'tdi</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <p className="font-display flex items-center gap-1.5 text-2xl font-extrabold text-charcoal">
+              <TrendingUp size={18} className="text-caramel" />
+              {conversion}%
+            </p>
+            <p className="text-xs font-semibold text-charcoal-soft/80 mt-1">Konversiya</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <p className="font-display text-2xl font-extrabold text-sky-600">
+              {active.filter((l) => l.status === "yangi").length}
+            </p>
+            <p className="text-xs font-semibold text-charcoal-soft/80 mt-1">Yangi</p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Filters */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {FILTERS.map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-              filter === f.key ? "btn-primary" : "border border-black/10 bg-white text-charcoal-soft hover:text-charcoal"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
+      {/* Filters with Shadcn Tabs Trigger and CSV export */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <TabsList>
+          {FILTERS.map((f) => (
+            <TabsTrigger
+              key={f.key}
+              isActive={filter === f.key}
+              onClick={() => setFilter(f.key)}
+            >
+              {f.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
         <button
           onClick={exportCsv}
           disabled={shown.length === 0}
           title="Joriy ro'yxatni CSV (Excel) ga yuklab olish"
-          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-charcoal-soft transition hover:text-caramel-deep disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-charcoal-soft transition hover:text-caramel-deep hover:border-caramel/30 shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Download size={15} /> CSV eksport
         </button>
       </div>
 
-      {/* Table */}
-      <div className="card-soft overflow-hidden rounded-2xl">
-        <div className="hidden grid-cols-[1.4fr_1fr_1.2fr_1.2fr_auto] gap-3 border-b border-black/5 bg-cream-soft px-5 py-3 text-xs font-semibold uppercase tracking-wide text-charcoal-soft lg:grid">
-          <span>O'quvchi</span>
-          <span>Telefon</span>
-          <span>Kurs</span>
-          <span>Status</span>
-          <span className="text-right">Amallar</span>
-        </div>
+      {/* Table with Shadcn Table components */}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[30%]">O'quvchi</TableHead>
+            <TableHead className="w-[20%]">Telefon</TableHead>
+            <TableHead className="w-[25%]">Kurs</TableHead>
+            <TableHead className="w-[15%]">Status</TableHead>
+            <TableHead className="w-[10%] text-right">Amallar</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {shown.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={5} className="py-10 text-center text-sm text-stone-500">
+                Ariza yo'q.
+              </TableCell>
+            </TableRow>
+          )}
 
-        {shown.length === 0 && <p className="px-5 py-10 text-center text-sm text-stone-500">Ariza yo'q.</p>}
+          {shown.map((lead) => (
+            <TableRow key={lead.id}>
+              <TableCell className="min-w-0">
+                <div className="flex items-center gap-2">
+                  {!lead.seen && <span className="h-2 w-2 shrink-0 rounded-full bg-caramel animate-pulse" />}
+                  <div>
+                    <p className="truncate font-bold text-charcoal text-sm">{lead.studentName}</p>
+                    <p className="text-[10px] text-stone-500 mt-0.5">{new Date(lead.createdAt).toLocaleDateString("uz")}</p>
+                  </div>
+                </div>
+              </TableCell>
 
-        {shown.map((lead) => (
-          <div
-            key={lead.id}
-            className="grid grid-cols-1 gap-3 border-b border-black/5 px-5 py-4 transition hover:bg-cream-soft lg:grid-cols-[1.4fr_1fr_1.2fr_1.2fr_auto] lg:items-center"
-          >
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                {!lead.seen && <span className="h-2 w-2 shrink-0 rounded-full bg-caramel" />}
-                <p className="truncate font-semibold text-charcoal">{lead.studentName}</p>
-              </div>
-              <p className="text-xs text-stone-500">{new Date(lead.createdAt).toLocaleDateString("uz")}</p>
-            </div>
+              <TableCell>
+                <a href={`tel:${lead.phone}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-caramel-deep hover:underline">
+                  <Phone size={13} /> {lead.phone}
+                </a>
+              </TableCell>
 
-            <a href={`tel:${lead.phone}`} className="flex items-center gap-1.5 text-sm text-caramel-deep">
-              <Phone size={13} /> {lead.phone}
-            </a>
+              <TableCell>
+                <span className="truncate text-sm text-charcoal-soft font-semibold">{courseName(lead.courseId) ?? "—"}</span>
+              </TableCell>
 
-            <p className="truncate text-sm text-charcoal-soft">{courseName(lead.courseId) ?? "—"}</p>
+              <TableCell>
+                <div className="w-[140px]">
+                  <Select
+                    value={lead.status}
+                    onChange={(e) => setStatus(lead.id, e.target.value as LeadStatus)}
+                    disabled={busyId === lead.id}
+                    className="!py-1.5 text-xs font-semibold"
+                  >
+                    <option value="yangi">Yangi</option>
+                    <option value="boglanildi">Bog'lanildi</option>
+                    <option value="royxatga_otdi">Ro'yxatdan o'tdi</option>
+                  </Select>
+                </div>
+              </TableCell>
 
-            <div>
-              <Select
-                value={lead.status}
-                onChange={(e) => setStatus(lead.id, e.target.value as LeadStatus)}
-                disabled={busyId === lead.id}
-                className="!py-2 text-xs"
-              >
-                <option value="yangi">Yangi</option>
-                <option value="boglanildi">Bog'lanildi</option>
-                <option value="royxatga_otdi">Ro'yxatdan o'tdi</option>
-              </Select>
-            </div>
-
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => {
-                  setEditing(lead);
-                  setNotes(lead.notes);
-                }}
-                title="Izoh"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-black/[0.04] text-charcoal-soft transition hover:bg-black/[0.08] hover:text-charcoal"
-              >
-                <StickyNote size={15} />
-              </button>
-              <button
-                onClick={() => verify(lead.id)}
-                disabled={busyId === lead.id}
-                title="Tekshirildi (arxivga)"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-jade/12 text-jade transition hover:bg-jade/20 disabled:opacity-50"
-              >
-                <Check size={16} />
-              </button>
-              <button
-                onClick={() => remove(lead.id)}
-                title="O'chirish"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-rose-500/12 text-rose-600 transition hover:bg-rose-500/20"
-              >
-                <Trash2 size={15} />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+              <TableCell className="lg:text-right flex items-center gap-2 justify-end">
+                <button
+                  onClick={() => {
+                    setEditing(lead);
+                    setNotes(lead.notes);
+                  }}
+                  title="Izoh"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-black/[0.04] text-charcoal-soft transition hover:bg-black/[0.08] hover:text-charcoal"
+                >
+                  <StickyNote size={15} />
+                </button>
+                <button
+                  onClick={() => verify(lead.id)}
+                  disabled={busyId === lead.id}
+                  title="Tekshirildi (arxivga)"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-jade/12 text-jade-deep transition hover:bg-jade/20 disabled:opacity-50"
+                >
+                  <Check size={16} />
+                </button>
+                <button
+                  onClick={() => remove(lead.id)}
+                  title="O'chirish"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-rose-500/12 text-rose-600 transition hover:bg-rose-500/20"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
       <p className="mt-3 text-xs text-stone-500">
         "Tekshirildi" tugmasi arizani <span className="text-charcoal">Tekshirilgan arizalar</span> bo'limiga

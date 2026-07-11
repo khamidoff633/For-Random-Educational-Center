@@ -5,6 +5,7 @@ import Modal from "../../components/ui/Modal";
 import { Field, TextInput, TextArea, Select } from "../ui/AdminField";
 import MediaUpload from "../ui/MediaUpload";
 import type { Course, Teacher } from "../../types";
+import { Card, CardContent, Badge } from "../ui/ShadcnComponents";
 
 const EMPTY: Partial<Course> = {
   name: "",
@@ -80,37 +81,46 @@ export default function CoursesPanel({
 
   return (
     <div>
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <h3 className="font-display text-lg font-bold text-charcoal">Kurslar ({courses.length})</h3>
-        <button onClick={() => setEditing({ ...EMPTY })} className="btn-primary inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm">
+        <button onClick={() => setEditing({ ...EMPTY })} className="btn-primary inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm">
           <Plus size={16} /> Yangi kurs
         </button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {courses.map((course) => (
-          <div key={course.id} className="card-soft overflow-hidden rounded-2xl">
-            <div className="flex gap-3 p-4">
+          <Card key={course.id} className="overflow-hidden flex flex-col h-full hover:-translate-y-0.5 transition-transform duration-300">
+            <CardContent className="flex gap-4 p-5 flex-1">
               <img
                 src={course.image || "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=200&auto=format&fit=crop"}
                 alt=""
-                className="h-16 w-16 shrink-0 rounded-xl object-cover"
+                className="h-16 w-16 shrink-0 rounded-xl object-cover border border-black/5"
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-bold text-charcoal">{course.name}</p>
-                <p className="text-xs font-semibold text-caramel-deep">{course.category}</p>
-                <p className="mt-0.5 truncate text-xs text-charcoal-soft">{teacherName(course.teacherId)} · {course.price}</p>
+                <p className="truncate font-bold text-charcoal text-sm">{course.name}</p>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <Badge variant="outline" className="text-[10px] font-bold py-0.5">
+                    {course.category}
+                  </Badge>
+                  <Badge variant="secondary" className="text-[10px] font-bold py-0.5">
+                    {course.price}
+                  </Badge>
+                </div>
+                <p className="mt-2 truncate text-xs text-charcoal-soft font-semibold">
+                  Ustoz: <span className="text-charcoal font-bold">{teacherName(course.teacherId)}</span>
+                </p>
               </div>
-            </div>
-            <div className="flex border-t border-black/5">
-              <button onClick={() => setEditing(course)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs text-charcoal-soft transition hover:bg-cream-soft hover:text-caramel-deep">
+            </CardContent>
+            <div className="flex border-t border-black/5 bg-cream-soft/10">
+              <button onClick={() => setEditing(course)} className="flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-semibold text-charcoal-soft transition hover:bg-cream-soft/40 hover:text-caramel-deep border-r border-black/5">
                 <Pencil size={13} /> Tahrirlash
               </button>
-              <button onClick={() => remove(course.id)} className="flex flex-1 items-center justify-center gap-1.5 border-l border-black/5 py-2.5 text-xs text-charcoal-soft transition hover:bg-rose-50 hover:text-rose-600">
+              <button onClick={() => remove(course.id)} className="flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-semibold text-charcoal-soft transition hover:bg-rose-50 hover:text-rose-600">
                 <Trash2 size={13} /> O'chirish
               </button>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 

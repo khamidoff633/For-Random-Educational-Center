@@ -6,6 +6,7 @@ import { Field, TextInput, TextArea, Select } from "../ui/AdminField";
 import MediaUpload from "../ui/MediaUpload";
 import Avatar from "../../components/ui/Avatar";
 import type { ExamType, StudentResultItem } from "../../types";
+import { Card, CardContent, Badge } from "../ui/ShadcnComponents";
 
 const EXAM_TYPES: ExamType[] = ["IELTS", "CEFR", "SAT", "Dasturlash"];
 const DESC_MAX = 150;
@@ -61,42 +62,49 @@ export default function ResultsPanel({
 
   return (
     <div>
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <h3 className="font-display text-lg font-bold text-charcoal">O'quvchilar natijalari ({results.length})</h3>
-        <button onClick={() => setEditing({ ...EMPTY })} className="btn-primary inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm">
+        <button onClick={() => setEditing({ ...EMPTY })} className="btn-primary inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm">
           <Plus size={16} /> Yangi natija
         </button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {results.map((result) => (
-          <div key={result.id} className="card-soft overflow-hidden rounded-2xl">
-            <div className="flex gap-3 p-4">
+          <Card key={result.id} className="overflow-hidden flex flex-col h-full hover:-translate-y-0.5 transition-transform duration-300">
+            <CardContent className="flex gap-4 p-5 flex-1">
               <Avatar
                 name={result.studentName}
                 src={result.certificateImage || result.image}
                 fontClass="text-lg"
-                className="h-16 w-16 shrink-0 rounded-xl"
+                className="h-16 w-16 shrink-0 rounded-xl border border-black/5"
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-bold text-charcoal">{result.studentName}</p>
-                <p className="text-xs font-semibold text-caramel-deep">{result.examType} · {result.score}</p>
+                <p className="truncate font-bold text-charcoal text-sm">{result.studentName}</p>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <Badge variant="outline" className="text-[10px] font-bold py-0.5">
+                    {result.examType}
+                  </Badge>
+                  <Badge variant="success" className="text-[10px] font-bold py-0.5">
+                    {result.score}
+                  </Badge>
+                </div>
                 {result.certificateImage && (
-                  <span className="mt-1 inline-flex items-center gap-1 text-[10px] text-jade">
-                    <Award size={11} /> Sertifikat bor
+                  <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold text-jade-deep">
+                    <Award size={11} /> Sertifikat yuklangan
                   </span>
                 )}
               </div>
-            </div>
-            <div className="flex border-t border-black/5">
-              <button onClick={() => setEditing(result)} className="flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs text-charcoal-soft transition hover:bg-cream-soft hover:text-caramel-deep">
+            </CardContent>
+            <div className="flex border-t border-black/5 bg-cream-soft/10">
+              <button onClick={() => setEditing(result)} className="flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-semibold text-charcoal-soft transition hover:bg-cream-soft/40 hover:text-caramel-deep border-r border-black/5">
                 <Pencil size={13} /> Tahrirlash
               </button>
-              <button onClick={() => remove(result.id)} className="flex flex-1 items-center justify-center gap-1.5 border-l border-black/5 py-2.5 text-xs text-charcoal-soft transition hover:bg-rose-50 hover:text-rose-600">
+              <button onClick={() => remove(result.id)} className="flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-semibold text-charcoal-soft transition hover:bg-rose-50 hover:text-rose-600">
                 <Trash2 size={13} /> O'chirish
               </button>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
